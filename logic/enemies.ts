@@ -45,21 +45,21 @@ const createBoss = (
       if (type === 'BOSS_1') { 
         attackPattern = 'MISSILE'; 
         color = '#1f2937';
-        hp = 50000; // FIXED HP: 50k
-        speed = 200; 
+        hp = 80000; // BUFFED previous turn
+        speed = 220; 
       } else if (type === 'BOSS_2') {
         attackPattern = 'BLACK_HOLE';
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
-        hp = 100000; // FIXED HP: 100k
-        speed = 220; 
+        hp = 150000; // BUFFED previous turn
+        speed = 240; 
       } else {
-        // BOSS 3
+        // BOSS 3 - TANKY BUT SLOW
         attackPattern = 'SPIRAL';
         color = '#450a0a'; 
         borderColor = '#facc15'; 
-        hp = 200000; // FIXED HP: 200k
-        speed = 260; 
+        hp = 180000; // HP: 180k as requested
+        speed = 180; // Slow movement
       }
 
       return {
@@ -136,10 +136,10 @@ export const handleEnemySpawning = (
       return; 
   }
   
-  // === SPAWN CLUSTERS (REDUCED QUANTITY) ===
-  // Reduced base count and slower scaling for easier difficulty
-  const baseCount = 2 + Math.floor(gameTime / 45); 
-  const spawnCount = Math.min(12, baseCount); 
+  // === SPAWN CLUSTERS ===
+  // Tăng nhẹ số lượng quái spawn mỗi đợt
+  const baseCount = 4 + Math.floor(gameTime / 40); 
+  const spawnCount = Math.min(18, baseCount); 
   
   const angle = Math.random() * Math.PI * 2;
   const dist = 1000; 
@@ -270,21 +270,21 @@ export const updateEnemies = (
         }
     }
 
-    // === BOSS 1: MISSILE RAIN & SLAM (BUFFED AGGRESSION) ===
+    // === BOSS 1: MISSILE RAIN & SLAM (HARD) ===
     if (e.type === 'BOSS_1') {
         if (e.attackState === 'IDLE') {
-            // Aggressive: Only 0.6s idle (Reduced from 0.8)
+            // Aggressive: Only 0.6s idle
             if (e.stateTimer > 0.6) {
                 e.attackPattern = Math.random() > 0.5 ? 'SLAM' : 'MISSILE';
                 e.attackState = 'WARN'; e.stateTimer = 0;
                 
                 if (e.attackPattern === 'MISSILE') {
                     e.missileTargets = [];
-                    // Increased missiles to 20 (Massive buff)
-                    for(let i=0; i<20; i++) {
+                    // BUFF: Increased missiles from 20 to 30
+                    for(let i=0; i<30; i++) {
                         e.missileTargets.push({
-                            x: player.x + getRandomRange(-450, 450),
-                            y: player.y + getRandomRange(-450, 450)
+                            x: player.x + getRandomRange(-500, 500),
+                            y: player.y + getRandomRange(-500, 500)
                         });
                     }
                 }
@@ -299,17 +299,17 @@ export const updateEnemies = (
         else if (e.attackState === 'FIRING') {
             shouldMove = false;
             if (e.attackPattern === 'SLAM') {
-                 shakeManager.shake(25);
+                 shakeManager.shake(30); // More shake
                  createSimpleParticles(particles, e.x, e.y, '#ef4444', 60);
                  particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0, vx:0, vy:0, life:0.5, maxLife:0.5, color: '#ef4444', size: 300, type: 'SHOCKWAVE', drag:0, growth: 1200 });
-                 if (dist < 300) takeDamage(60); // Increased damage
+                 if (dist < 350) takeDamage(70); // Increased damage and range
             } 
             else if (e.attackPattern === 'MISSILE') {
-                shakeManager.shake(15);
+                shakeManager.shake(20);
                 e.missileTargets?.forEach(t => {
                     createSimpleParticles(particles, t.x, t.y, '#f97316', 20);
                     particles.push({ id: Math.random().toString(), x: t.x, y: t.y, width:0, height:0, vx:0, vy:0, life:0.4, maxLife:0.4, color: '#f97316', size: 80, type: 'SHOCKWAVE', drag:0, growth: 200 });
-                    if (getDistance(player.x, player.y, t.x, t.y) < 100) takeDamage(45); // Increased damage
+                    if (getDistance(player.x, player.y, t.x, t.y) < 100) takeDamage(50); // Increased damage
                 });
             }
             e.attackState = 'COOLDOWN'; e.stateTimer = 0;
@@ -320,11 +320,11 @@ export const updateEnemies = (
         }
     }
 
-    // === BOSS 2: BLACK HOLE & LASER (BUFFED SPEED) ===
+    // === BOSS 2: BLACK HOLE & LASER (HARD) ===
     else if (e.type === 'BOSS_2') {
          if (e.attackState === 'IDLE') {
-             // Aggressive: 0.6s idle (Reduced from 1.0)
-             if (e.stateTimer > 0.6) {
+             // Very Aggressive: 0.5s idle
+             if (e.stateTimer > 0.5) {
                  e.attackPattern = Math.random() > 0.4 ? 'LASER' : 'BLACK_HOLE';
                  e.attackState = 'WARN'; e.stateTimer = 0;
                  e.secondaryTimer = 0;
@@ -339,7 +339,7 @@ export const updateEnemies = (
          }
          else if (e.attackPattern === 'LASER' && e.attackState === 'CHARGING') {
              shouldMove = false;
-             // Rapid Charge: 0.25s (Faster!)
+             // Rapid Charge: 0.25s
              if (e.stateTimer > 0.25) { e.attackState = 'FIRING'; e.stateTimer = 0; shakeManager.shake(10); }
          }
          else if (e.attackPattern === 'LASER' && e.attackState === 'FIRING') {
@@ -351,7 +351,7 @@ export const updateEnemies = (
              let param = -1; if (len_sq !== 0) param = dot / len_sq;
              let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
              const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
-             if (distToLine < 50) { takeDamage(4); } // Increased DPS
+             if (distToLine < 50) { takeDamage(5); } // Increased DPS
 
              shouldMove = false;
              // Laser duration 1.5s
@@ -379,10 +379,10 @@ export const updateEnemies = (
          }
     }
 
-    // === BOSS 3: UPGRADED (HYPER OFFENSIVE) ===
+    // === BOSS 3: HIGH HP, EASY SKILLS ===
     else if (e.type === 'BOSS_3') {
-        // Zero idle: 0.2s
-        if (e.attackState === 'IDLE' && e.stateTimer > 0.2) {
+        // High HP Sponge, but moves attacks slower
+        if (e.attackState === 'IDLE' && e.stateTimer > 1.2) { // Relaxed Idle
              const r = Math.random();
              if (r < 0.33) e.attackPattern = 'SPIRAL';
              else if (r < 0.66) e.attackPattern = 'GRID';
@@ -393,27 +393,27 @@ export const updateEnemies = (
              e.burstCount = 3; 
         }
 
-        // 1. SPIRAL NOVA (MACHINE GUN SPEED)
+        // 1. SPIRAL NOVA (EASY DODGE)
         if (e.attackPattern === 'SPIRAL') {
             shouldMove = false;
             if (e.attackState === 'WARN') {
-                 // Instant Warning: 0.3s
-                 if (e.stateTimer > 0.3) { e.attackState = 'FIRING'; e.stateTimer = 0; }
+                 // Long Warning: 1.0s
+                 if (e.stateTimer > 1.0) { e.attackState = 'FIRING'; e.stateTimer = 0; }
             }
             else if (e.attackState === 'FIRING') {
-                e.rotationSpeed = (e.rotationSpeed || 0) + dt * 0.4; 
-                e.laserAngle = (e.laserAngle || 0) + 7.0 * dt; // Faster Rotation
+                e.rotationSpeed = (e.rotationSpeed || 0) + dt * 0.15; // Slower spin up
+                e.laserAngle = (e.laserAngle || 0) + 2.0 * dt; // Slower rotation
                 e.secondaryTimer = (e.secondaryTimer || 0) + dt;
                 
-                // Machine Gun Fire: 0.01s per shot (Doubled fire rate)
-                if (e.secondaryTimer > 0.01) { 
-                    const arms = 8; 
+                // Very Slow Fire Rate: 0.08s
+                if (e.secondaryTimer > 0.08) { 
+                    const arms = 6; 
                     for(let i=0; i<arms; i++) {
                        const angle = (e.laserAngle || 0) + (Math.PI * 2 / arms) * i;
                        projectiles.push({
                             id: Math.random().toString(), x: e.x, y: e.y, width: 20, height: 20,
-                            vx: Math.cos(angle) * 650, vy: Math.sin(angle) * 650, // Faster bullets (650)
-                            damage: e.damage, life: 5, rotation: angle, type: 'ENEMY_BULLET', pierce: 0, color: '#facc15'
+                            vx: Math.cos(angle) * 400, vy: Math.sin(angle) * 400, // Very Slow Bullets (400)
+                            damage: e.damage, life: 6, rotation: angle, type: 'ENEMY_BULLET', pierce: 0, color: '#facc15'
                         });
                     }
                     e.secondaryTimer = 0;
@@ -422,16 +422,17 @@ export const updateEnemies = (
             }
         }
         
-        // 2. DEATH GRID (DENSE & FAST)
+        // 2. DEATH GRID (EASY MODE)
         else if (e.attackPattern === 'GRID') {
             shouldMove = false;
             if (e.attackState === 'WARN') {
-                 if (e.stateTimer > 0.5) { e.attackState = 'FIRING'; e.stateTimer = 0; }
+                 // Very Long Warning: 1.2s
+                 if (e.stateTimer > 1.2) { e.attackState = 'FIRING'; e.stateTimer = 0; }
             }
             else if (e.attackState === 'FIRING') {
                 e.secondaryTimer = (e.secondaryTimer || 0) + dt;
-                // Faster Grid Lines: 0.2s
-                if (e.secondaryTimer > 0.2) { 
+                // Slow Grid Spawn: 0.5s
+                if (e.secondaryTimer > 0.5) { 
                     const isHorizontal = Math.random() > 0.5;
                     const offset = getRandomRange(-500, 500);
                     const px = isHorizontal ? player.x + offset : player.x;
@@ -439,20 +440,20 @@ export const updateEnemies = (
                     
                     particles.push({
                          id: Math.random().toString(), x: px, y: py, width:0, height:0,
-                         vx:0, vy:0, life:1.0, maxLife:1.0, color: 'rgba(239, 68, 68, 0.5)', size: isHorizontal ? 4 : 2000, 
+                         vx:0, vy:0, life:1.5, maxLife:1.5, color: 'rgba(239, 68, 68, 0.5)', size: isHorizontal ? 4 : 2000, 
                          type: 'DOT', drag:0, growth:0 
                     });
                     
-                    const count = 30; // 30 bullets per line (Dense)
+                    const count = 14; // Reduced Density (14 bullets)
                     for(let k=0; k<count; k++) {
                          projectiles.push({
                             id: Math.random().toString(), 
-                            x: isHorizontal ? player.x - 700 + k*50 : px, 
-                            y: isHorizontal ? py : player.y - 700 + k*50,
+                            x: isHorizontal ? player.x - 700 + k*100 : px, // Wide gaps
+                            y: isHorizontal ? py : player.y - 700 + k*100,
                             width: 25, height: 25,
-                            vx: isHorizontal ? 0 : (Math.random() > 0.5 ? 400 : -400), 
-                            vy: isHorizontal ? (Math.random() > 0.5 ? 400 : -400) : 0,
-                            damage: e.damage, life: 5, rotation: 0, type: 'ENEMY_BULLET', pierce: 0, color: '#ef4444'
+                            vx: isHorizontal ? 0 : (Math.random() > 0.5 ? 280 : -280), // Slow speed 280
+                            vy: isHorizontal ? (Math.random() > 0.5 ? 280 : -280) : 0,
+                            damage: e.damage, life: 6, rotation: 0, type: 'ENEMY_BULLET', pierce: 0, color: '#ef4444'
                          });
                     }
                     e.secondaryTimer = 0;
@@ -461,7 +462,7 @@ export const updateEnemies = (
             }
         }
 
-        // 3. EXECUTION DASH (INSTANT)
+        // 3. EXECUTION DASH (TELEGRAPHED)
         else if (e.attackPattern === 'DASH') {
              shouldMove = false;
              
@@ -469,13 +470,13 @@ export const updateEnemies = (
                   if (e.stateTimer === 0 || !e.dashTarget) {
                       e.dashTarget = { x: player.x, y: player.y };
                   }
-                  // Instant warning: 0.25s
-                  if (e.stateTimer > 0.25) { 
+                  // Long Telegraph: 1.0s
+                  if (e.stateTimer > 1.0) { 
                       e.attackState = 'DASHING'; e.stateTimer = 0; 
-                      shakeManager.shake(20);
+                      shakeManager.shake(15);
                       const angle = Math.atan2(e.dashTarget.y - e.y, e.dashTarget.x - e.x);
-                      e.vx = Math.cos(angle) * 2000; // Hyper speed dash
-                      e.vy = Math.sin(angle) * 2000;
+                      e.vx = Math.cos(angle) * 900; // Slower Dash (900)
+                      e.vy = Math.sin(angle) * 900;
                   }
              }
              else if (e.attackState === 'DASHING') {
@@ -486,8 +487,7 @@ export const updateEnemies = (
                      particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width: e.width, height: e.height, vx: 0, vy: 0, life: 0.3, maxLife: 0.3, color: 'rgba(220, 38, 38, 0.4)', size: e.width, type: 'SQUARE', drag: 0, growth: -5 });
                  }
                  
-                 // Short Dash
-                 if (e.stateTimer > 0.15) {
+                 if (e.stateTimer > 0.3) { 
                      e.burstCount = (e.burstCount || 1) - 1;
                      e.vx = 0; e.vy = 0;
                      if (e.burstCount > 0) {
@@ -500,8 +500,8 @@ export const updateEnemies = (
         }
 
         if (e.attackState === 'COOLDOWN') {
-            // Near zero cooldown: 0.2s
-            if (e.stateTimer > 0.2) { e.attackState = 'IDLE'; e.stateTimer = 0; }
+            // Generous Cooldown: 1.0s
+            if (e.stateTimer > 1.0) { e.attackState = 'IDLE'; e.stateTimer = 0; }
         }
     }
 

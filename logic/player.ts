@@ -43,9 +43,9 @@ export const updatePlayerMovement = (
   activeBosses.forEach(boss => {
       if (boss.type === 'BOSS_2' && boss.attackPattern === 'BLACK_HOLE' && boss.attackState === 'PULLING') {
           const dist = getDistance(player.x, player.y, boss.x, boss.y);
-          if (dist < 900) { // Increased pull range from 800
-              // Stronger Pull: Increased base strength and falloff curve
-              const pullStrength = 450 * (1 - dist / 900) + 100; // Buffed from 300/50
+          if (dist < 1000) { // Increased pull range from 900
+              // Stronger Pull: Increased base strength significantly for harder difficulty
+              const pullStrength = 600 * (1 - dist / 1000) + 150; 
               const angle = Math.atan2(boss.y - player.y, boss.x - player.x);
               nextX += Math.cos(angle) * pullStrength * dt;
               nextY += Math.sin(angle) * pullStrength * dt;
@@ -74,12 +74,11 @@ export const updateZoneLogic = (
   dt: number,
   activeBosses: Enemy[]
 ) => {
-  // Trigger Zone if there are active bosses AND we haven't triggered for the first boss ID yet (simple check)
-  // If multiple spawn at once, this will trigger using the ID of the first one, essentially triggering one zone for the wave.
+  // Trigger Zone if there are active bosses AND we haven't triggered for the first boss ID yet
   if (activeBosses.length > 0 && zone.lastBossId !== activeBosses[0].id && !zone.active) {
     zone.active = true;
     zone.lastBossId = activeBosses[0].id;
-    zone.radius = 1200;
+    zone.radius = 1500; // Start wider
     zone.center = { x: player.x, y: player.y };
     floatingTexts.push({
       id: 'zone_warning', x: player.x, y: player.y - 150,
@@ -88,15 +87,21 @@ export const updateZoneLogic = (
   }
 
   if (zone.active) {
-    // Shrink speed
-    zone.radius -= 35 * dt; 
+    const MIN_RADIUS = 600; // Bán kính tối thiểu của đấu trường (Đường kính 1200px)
+
+    // Shrink logic
+    if (zone.radius > MIN_RADIUS) {
+        zone.radius -= 60 * dt; // Shrink speed
+    } else {
+        zone.radius = MIN_RADIUS; // Clamp at minimum size
+    }
     
-    // Deactivate when too small
-    if (zone.radius < 300) {
+    // Deactivate ONLY when all bosses are dead
+    if (activeBosses.length === 0) {
         zone.active = false;
         floatingTexts.push({
             id: 'zone_safe', x: player.x, y: player.y - 100,
-            text: 'VÒNG BO ĐÃ TAN BIẾN', color: '#22c55e', life: 2, vx: 0, vy: -1
+            text: 'BOSS ĐÃ DIỆT - VÒNG BO TAN BIẾN', color: '#22c55e', life: 3, vx: 0, vy: -1
         });
     }
   }
