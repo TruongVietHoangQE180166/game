@@ -33,6 +33,16 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect }) => {
     }
   }
 
+  const getIcon = (type: string) => {
+      switch(type) {
+          case 'GUN_BUFF': return '🔫';
+          case 'BOOK_BUFF': return '📖';
+          case 'LIGHTNING_BUFF': return '⚡';
+          case 'NOVA_BUFF': return '💣';
+          default: return '❤️';
+      }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/40 backdrop-blur-sm p-4">
       <div className="max-w-6xl w-full flex flex-col items-center">
@@ -57,7 +67,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect }) => {
               
               <div className="flex-1 flex items-center justify-center py-4">
                 <div className="text-6xl group-hover:scale-125 transition-transform duration-500">
-                  {buff.type === 'GUN_BUFF' ? '🔫' : buff.type === 'BOOK_BUFF' ? '📖' : '❤️'}
+                  {getIcon(buff.type)}
                 </div>
               </div>
 

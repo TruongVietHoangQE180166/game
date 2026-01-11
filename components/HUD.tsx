@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { PlayerStats, Enemy } from '../types';
 import { 
   Heart, Shield, Skull, Clock, 
-  Crosshair, Book, Maximize2, Minimize2, Swords, Zap
+  Crosshair, Book, Maximize2, Minimize2, Swords, Zap, Bomb
 } from 'lucide-react';
 
 interface HUDProps {
@@ -164,18 +164,16 @@ const HUD: React.FC<HUDProps> = ({ stats, timer, activeBoss }) => {
                   </div>
                 )}
 
-                 {/* LOTUS (New) */}
-                {stats.lotusAmount > 0 && (
+                 {/* NOVA BLAST (New) */}
+                {stats.novaUnlocked && (
                   <div className="mb-4 relative">
-                     <div className="flex items-center gap-2 mb-2 text-pink-600 border-b-2 border-pink-100 pb-1">
-                       {/* Flower icon replacement using Zap for now or maybe a custom SVG if needed, using standard icon here */}
-                       <span className="text-lg">🌸</span> <span className="text-xs font-black uppercase tracking-wider">Liên Hoa Nộ</span>
+                     <div className="flex items-center gap-2 mb-2 text-red-600 border-b-2 border-red-100 pb-1">
+                       <Bomb size={16} strokeWidth={3} /> <span className="text-xs font-black uppercase tracking-wider">Nova Blast</span>
                      </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-pink-50/50 p-2 rounded border border-pink-100">
-                        <MiniStat label="SÁT THƯƠNG" value={`${Math.round(stats.lotusDamageMult * 100)}%`} />
-                        <MiniStat label="HỒI CHIÊU" value={`${Math.round((1/stats.lotusCooldownMult) * 100)}%`} />
-                        <MiniStat label="PHẠM VI" value={`${Math.round(stats.lotusArea * 100)}%`} />
-                        <MiniStat label="CÁNH HOA" value={`x${stats.lotusAmount}`} />
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-red-50/50 p-2 rounded border border-red-100">
+                        <MiniStat label="SÁT THƯƠNG" value={`${Math.round(stats.novaDamageMult * 100)}%`} />
+                        <MiniStat label="HỒI CHIÊU" value={`${Math.round((1/stats.novaCooldownMult) * 100)}%`} />
+                        <MiniStat label="PHẠM VI" value={`${Math.round(stats.novaArea * 100)}%`} />
                      </div>
                   </div>
                 )}

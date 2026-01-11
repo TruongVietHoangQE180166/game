@@ -25,7 +25,7 @@ import { calculatePlayerDamage, generateLevelUpOptions, applyQuizResult } from '
 import { INITIAL_STATS } from './logic/stats';
 import { createHitEffect, updateParticles, updateFloatingTexts } from './logic/particles';
 import { updatePlayerMovement, updateZoneLogic } from './logic/player';
-import { updateGun, updateLightning, updateBook, updateLotus } from './logic/weapons';
+import { updateGun, updateLightning, updateBook, updateNova } from './logic/weapons';
 import { handleEnemySpawning, updateEnemies } from './logic/enemies';
 import { updateProjectiles } from './logic/projectiles';
 import { updateCollectibles } from './logic/collectibles';
@@ -67,8 +67,8 @@ const App: React.FC = () => {
   const shakeManager = useRef(new ScreenShake());
   const gameTimeRef = useRef(0);
   const spawnTimerRef = useRef(0);
-  // Added lotus timer
-  const weaponTimersRef = useRef({ gun: 0, book: 0, lightning: 0, lotus: 0 });
+  // Weapon timers
+  const weaponTimersRef = useRef({ gun: 0, book: 0, lightning: 0, nova: 0 });
   const iFrameRef = useRef(0);
   const statsRef = useRef<PlayerStats>(INITIAL_STATS);
   
@@ -126,7 +126,7 @@ const App: React.FC = () => {
     particlesRef.current = [];
     floatingTextsRef.current = [];
     playerRef.current = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, size: 40 };
-    weaponTimersRef.current = { gun: 0, book: 0, lightning: 0, lotus: 0 };
+    weaponTimersRef.current = { gun: 0, book: 0, lightning: 0, nova: 0 };
     zoneRef.current = { active: false, radius: 0, center: {x:0, y:0}, lastTriggeredLevel: 0 };
     bossFlags.current = { boss1: false, boss2: false, boss3: false };
     
@@ -209,7 +209,7 @@ const App: React.FC = () => {
     updateGun(dt, weaponTimersRef.current, s, playerRef.current, enemiesRef.current, projectilesRef.current, particlesRef.current);
     updateLightning(dt, weaponTimersRef.current, s, playerRef.current, enemiesRef.current, particlesRef.current, floatingTextsRef.current, shakeManager.current);
     updateBook(dt, gameTimeRef.current, s, playerRef.current, enemiesRef.current, particlesRef.current, floatingTextsRef.current);
-    updateLotus(dt, weaponTimersRef.current, s, playerRef.current, enemiesRef.current, projectilesRef.current, particlesRef.current, floatingTextsRef.current, shakeManager.current);
+    updateNova(dt, weaponTimersRef.current, s, playerRef.current, enemiesRef.current, particlesRef.current, floatingTextsRef.current, shakeManager.current);
 
     projectilesRef.current = updateProjectiles(dt, projectilesRef.current, enemiesRef.current, playerRef.current, particlesRef.current, floatingTextsRef.current, takeDamage);
 

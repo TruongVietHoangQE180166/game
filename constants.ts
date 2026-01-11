@@ -133,38 +133,46 @@ export const BUFFS: Buff[] = [
     effect: (s) => ({ ...s, lightningAmount: s.lightningAmount + 2, lightningCooldownMult: s.lightningCooldownMult * 0.8 })
   },
 
-  // --- LOTUS BUFFS (NEW) ---
+  // --- NOVA BLAST BUFFS ---
   {
-    id: 'lotus_unlock',
-    name: 'LIÊN HOA NỘ',
-    description: 'Mở khóa: Đóa sen phát nổ & 4 cánh hoa truy kích',
+    id: 'nova_aftershock',
+    name: 'DƯ CHẤN',
+    description: '+20% Sát thương Nổ & +20% Phạm vi',
     rarity: Rarity.RARE,
-    type: 'LOTUS_BUFF',
-    effect: (s) => ({ ...s, lotusAmount: s.lotusAmount + 4 }) // Starts with 4 petals
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaDamageMult: s.novaDamageMult + 0.2, novaArea: s.novaArea + 0.2 }) 
   },
   {
-    id: 'lotus_area',
-    name: 'Đài Sen Lớn',
-    description: '+25% Phạm vi nổ của Sen',
-    rarity: Rarity.UNCOMMON,
-    type: 'LOTUS_BUFF',
-    effect: (s) => ({ ...s, lotusArea: s.lotusArea + 0.25 })
-  },
-  {
-    id: 'lotus_petals',
-    name: 'Mưa Cánh Hoa',
-    description: '+2 Cánh hoa bắn ra thêm',
+    id: 'nova_damage',
+    name: 'Lõi Phản Ứng',
+    description: '+50% Sát thương Nổ, màu nổ đậm hơn',
     rarity: Rarity.EPIC,
-    type: 'LOTUS_BUFF',
-    effect: (s) => ({ ...s, lotusAmount: s.lotusAmount + 2 })
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaDamageMult: s.novaDamageMult + 0.5 })
   },
   {
-    id: 'lotus_godly',
-    name: 'QUỐC HOA VIỆT NAM',
-    description: 'X2 Sát thương, +4 Cánh hoa, +50% Phạm vi (GODLY)',
+    id: 'nova_area',
+    name: 'Sóng Xung Kích',
+    description: '+25% Phạm vi nổ',
+    rarity: Rarity.UNCOMMON,
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaArea: s.novaArea + 0.25 })
+  },
+  {
+    id: 'nova_cooldown',
+    name: 'Tản Nhiệt Nhanh',
+    description: '-15% Thời gian hồi chiêu Nổ',
+    rarity: Rarity.RARE,
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaCooldownMult: s.novaCooldownMult * 0.85 })
+  },
+  {
+    id: 'nova_godly',
+    name: 'BIG BANG',
+    description: 'X3 Sát thương, +50% Phạm vi (GODLY)',
     rarity: Rarity.GODLY,
-    type: 'LOTUS_BUFF',
-    effect: (s) => ({ ...s, lotusArea: s.lotusArea + 0.5, lotusDamageMult: s.lotusDamageMult + 1.0, lotusAmount: s.lotusAmount + 4 })
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaDamageMult: s.novaDamageMult + 2.0, novaArea: s.novaArea + 0.5 })
   }
 ];
 

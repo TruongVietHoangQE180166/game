@@ -198,77 +198,71 @@ export const updateBook = (
   }
 };
 
-export const updateLotus = (
+export const updateNova = (
     dt: number,
-    weaponTimers: { lotus: number },
+    weaponTimers: { nova: number },
     stats: PlayerStats,
     player: PlayerRef,
     enemies: Enemy[],
-    projectiles: Projectile[],
     particles: Particle[],
     floatingTexts: FloatingText[],
     shakeManager: ScreenShake
 ) => {
-    weaponTimers.lotus += dt;
-    const cooldown = 3.5 * stats.lotusCooldownMult;
+    weaponTimers.nova += dt;
+    const cooldown = 3.0 * stats.novaCooldownMult; // Reduced from 4.0 to 3.0
     
-    if (stats.lotusAmount > 0 && weaponTimers.lotus >= cooldown) {
-        // 1. Trigger Area Bloom Effect
-        const bloomSize = 250 * stats.lotusArea;
-        const damage = 60 * stats.lotusDamageMult;
+    if (stats.novaUnlocked && weaponTimers.nova >= cooldown) {
+        // 1. Config
+        const blastRadius = 250 * stats.novaArea;
+        const damage = 80 * stats.novaDamageMult;
+        
+        // Calculate visual color based on damage multiplier (Ramping up heat)
+        // Base: Orange-Yellow (#fbbf24) -> High: Deep Red (#7f1d1d)
+        let color = '#fbbf24'; // default amber-400
+        if (stats.novaDamageMult > 1.5) color = '#f97316'; // orange-500
+        if (stats.novaDamageMult > 2.5) color = '#ef4444'; // red-500
+        if (stats.novaDamageMult > 4.0) color = '#7f1d1d'; // red-900 (Godly)
 
-        // Visual Bloom (Mandala)
+        // 2. Visuals (Center on Player)
         particles.push({
             id: Math.random().toString(),
             x: player.x, y: player.y,
             width: 0, height: 0,
             vx: 0, vy: 0,
-            life: 1.0, maxLife: 1.0,
-            color: '#f472b6', // Pink-400
-            size: bloomSize,
-            type: 'LOTUS_BLOOM',
-            drag: 0, growth: 20,
-            rotation: Math.random() * Math.PI,
-            vRot: 1.0 // Rotate effect
+            life: 0.5, maxLife: 0.5,
+            color: color,
+            size: blastRadius,
+            type: 'NOVA_BLAST', 
+            drag: 0, growth: 0
         });
 
-        shakeManager.shake(15);
+        // Shockwave ring
+        particles.push({
+             id: Math.random().toString(), x: player.x, y: player.y, width:0, height:0,
+             vx:0, vy:0, life:0.4, maxLife:0.4, color: color, size: blastRadius * 0.2, 
+             type: 'SHOCKWAVE', drag:0, growth: blastRadius * 2
+        });
 
-        // 2. Deal Damage in Area (AOE)
+        shakeManager.shake(10 + (stats.novaDamageMult * 2));
+
+        // 3. Damage Logic (Simple Circle Check)
+        let hitCount = 0;
         enemies.forEach(e => {
-            if (getDistance(player.x, player.y, e.x, e.y) < bloomSize) {
+            if (getDistance(player.x, player.y, e.x, e.y) < blastRadius) {
                 e.hp -= damage;
                 e.flashTime = 0.2;
-                // Push back hard
+                // Strong Pushback away from player center
                 if (e.aiType !== 'BOSS') {
                      const angle = Math.atan2(e.y - player.y, e.x - player.x);
-                     e.x += Math.cos(angle) * 100;
-                     e.y += Math.sin(angle) * 100;
+                     const pushForce = 150 + (stats.novaDamageMult * 20);
+                     e.x += Math.cos(angle) * pushForce;
+                     e.y += Math.sin(angle) * pushForce;
                 }
-                createHitEffect(particles, floatingTexts, e.x, e.y, '#ec4899', damage, true);
+                createHitEffect(particles, floatingTexts, e.x, e.y, color, damage, true);
+                hitCount++;
             }
         });
 
-        // 3. Spawn Petal Projectiles (Secondary Attack)
-        const petalCount = stats.lotusAmount;
-        for(let i=0; i<petalCount; i++) {
-            const angle = (Math.PI * 2 / petalCount) * i;
-            projectiles.push({
-                id: Math.random().toString(),
-                x: player.x, y: player.y,
-                width: 18, height: 18,
-                vx: Math.cos(angle) * 500, vy: Math.sin(angle) * 500,
-                damage: damage * 0.5, // Petals deal 50% of explosion damage
-                life: 3.0,
-                rotation: angle,
-                type: 'LOTUS_PETAL',
-                pierce: 1,
-                color: '#fbcfe8',
-                isHoming: true,
-                homingForce: 3.0
-            });
-        }
-
-        weaponTimers.lotus = 0;
+        weaponTimers.nova = 0;
     }
 }

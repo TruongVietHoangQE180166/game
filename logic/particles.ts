@@ -51,6 +51,57 @@ export const createHitEffect = (
   });
 };
 
+// NEW: Special effect for when Shield absorbs damage
+export const createShieldHitEffect = (
+  particles: Particle[],
+  floatingTexts: FloatingText[],
+  x: number, 
+  y: number, 
+  damageBlocked: number
+) => {
+  // 1. Blue Shockwave (Energy Ripple)
+  particles.push({
+    id: Math.random().toString(),
+    x, y, width: 0, height: 0,
+    vx: 0, vy: 0,
+    life: 0.3, maxLife: 0.3,
+    color: '#06b6d4', // Cyan-500
+    size: 40,
+    type: 'SHOCKWAVE',
+    drag: 0,
+    growth: 150
+  });
+
+  // 2. Digital Hexagon/Square Sparks
+  const particleCount = 8;
+  for (let i = 0; i < particleCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = getRandomRange(150, 350);
+    particles.push({
+      id: Math.random().toString(),
+      x, y, width: 0, height: 0,
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      life: getRandomRange(0.2, 0.5), maxLife: 0.5,
+      color: '#67e8f9', // Cyan-300
+      size: getRandomRange(4, 8),
+      type: 'SQUARE', // Digital bits look
+      drag: 0.9, 
+      growth: -10,
+      rotation: Math.random() * Math.PI,
+      vRot: getRandomRange(-5, 5)
+    });
+  }
+
+  // 3. Floating Text (Blue for Shield Damage)
+  floatingTexts.push({
+    id: Math.random().toString(),
+    x, y: y - 35, 
+    text: `-${Math.ceil(damageBlocked)}`, 
+    color: '#22d3ee', // Cyan-400
+    life: 0.6, vx: getRandomRange(-1, 1), vy: -8
+  });
+};
+
 export const createShellCasing = (particles: Particle[], x: number, y: number, angle: number) => {
   const perp = angle + Math.PI/2 + getRandomRange(-0.2, 0.2);
   const speed = getRandomRange(150, 250);

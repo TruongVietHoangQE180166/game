@@ -1,7 +1,7 @@
 
 import { PlayerStats, Buff, Particle, FloatingText } from '../types';
 import { BUFFS } from '../constants';
-import { createHitEffect } from './particles';
+import { createHitEffect, createShieldHitEffect } from './particles';
 
 // Calculates new stats after taking damage and spawns visual effects
 export const calculatePlayerDamage = (
@@ -14,12 +14,16 @@ export const calculatePlayerDamage = (
 ): PlayerStats => {
     const newStats = { ...currentStats };
     let dmg = rawDamage;
+    let absorbed = 0;
     
     // 1. Armor absorption (Energy Shield logic)
     if (newStats.currentArmor > 0) {
-        const absorb = Math.min(newStats.currentArmor, dmg);
-        newStats.currentArmor -= absorb;
-        dmg -= absorb;
+        absorbed = Math.min(newStats.currentArmor, dmg);
+        newStats.currentArmor -= absorbed;
+        dmg -= absorbed;
+        
+        // Shield Hit Visuals
+        createShieldHitEffect(particles, floatingTexts, playerPos.x, playerPos.y, absorbed);
     }
 
     // 2. Health damage

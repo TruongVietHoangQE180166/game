@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { ExpGem, HealthDrop, PlayerStats, FloatingText } from '../types';
 import { getDistance } from '../utils';
 

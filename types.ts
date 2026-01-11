@@ -33,16 +33,16 @@ export interface Buff {
   description: string;
   rarity: Rarity;
   effect: (stats: PlayerStats) => PlayerStats;
-  type: 'GUN_BUFF' | 'BOOK_BUFF' | 'LIGHTNING_BUFF' | 'LOTUS_BUFF' | 'STAT_BUFF';
+  type: 'GUN_BUFF' | 'BOOK_BUFF' | 'LIGHTNING_BUFF' | 'NOVA_BUFF' | 'STAT_BUFF';
 }
 
 export interface PlayerStats {
   // Core Stats
   maxHP: number;
   hp: number;
-  maxArmor: number; // Giáp tối đa (Mới)
-  currentArmor: number; // Giáp hiện tại (Mới)
-  armor: number; // Chỉ số phòng thủ (Giảm sát thương)
+  maxArmor: number;
+  currentArmor: number;
+  armor: number;
   moveSpeed: number;
 
   // Gun Specific Stats
@@ -57,7 +57,7 @@ export interface PlayerStats {
   bookCooldownMult: number;
   bookAmount: number;
   bookArea: number;
-  bookSpeed: number; // Tốc độ xoay
+  bookSpeed: number;
   
   // Lightning Specific Stats
   lightningDamageMult: number;
@@ -65,12 +65,12 @@ export interface PlayerStats {
   lightningAmount: number;
   lightningArea: number;
 
-  // Lotus Specific Stats (NEW)
-  lotusDamageMult: number;
-  lotusCooldownMult: number;
-  lotusAmount: number; // Số lượng cánh hoa bắn ra
-  lotusArea: number;   // Kích thước vùng nổ
-
+  // Nova Blast Stats (REPLACED LOTUS)
+  novaUnlocked: boolean; // Có mở khóa chưa
+  novaDamageMult: number;
+  novaCooldownMult: number;
+  novaArea: number;
+  
   // Progression
   level: number;
   exp: number;
@@ -98,7 +98,7 @@ export interface Entity {
 
 export interface Enemy extends Entity {
   type: 'NORM_1' | 'NORM_2' | 'SHOOTER' | 'EXPLODER' | 'ELITE' | 'BOSS_1' | 'BOSS_2' | 'BOSS_3';
-  aiType: 'MELEE' | 'RANGED' | 'KAMIKAZE' | 'BOSS';
+  aiType: 'MELEE' | 'RANGED' | 'KAMIKAZE' | 'DASHER' | 'BOSS'; // Added DASHER
   hp: number;
   maxHP: number;
   speed: number;
@@ -107,20 +107,26 @@ export interface Enemy extends Entity {
   borderColor: string;
   flashTime: number;
   
+  // Physics (Optional)
+  vx?: number;
+  vy?: number;
+  rotation?: number;
+
   // Advanced Attack Logic
   attackRange?: number;
-  attackPattern?: 'BASIC' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL';
-  attackState?: 'IDLE' | 'WARN' | 'FIRING' | 'COOLDOWN' | 'CHARGING'; 
-  stateTimer?: number; // Generic timer for states
-  burstCount?: number; // For burst attacks
-  secondaryTimer?: number; // For sub-states like burst fire rate
+  attackPattern?: 'BASIC' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL' | 'DASH' | 'STOMP';
+  attackState?: 'IDLE' | 'WARN' | 'FIRING' | 'COOLDOWN' | 'CHARGING' | 'DASHING'; 
+  stateTimer?: number;
+  burstCount?: number;
+  secondaryTimer?: number;
   
   // Special State Flags
-  isCharging?: boolean; // For Kamikaze
-  attackTimer?: number; // For Kamikaze charge duration
+  isCharging?: boolean; 
+  attackTimer?: number;
   
-  // Laser Specifics
+  // Laser/Dash Specifics
   laserAngle?: number;
+  dashTarget?: { x: number, y: number };
   rotationSpeed?: number;
 }
 
@@ -130,7 +136,7 @@ export interface Projectile extends Entity {
   damage: number;
   life: number;
   rotation: number;
-  type: 'PLAYER_BULLET' | 'ENEMY_BULLET' | 'LOTUS_PETAL';
+  type: 'PLAYER_BULLET' | 'ENEMY_BULLET';
   pierce: number;
   color: string;
   
@@ -146,7 +152,7 @@ export interface Particle extends Entity {
   maxLife: number; // For fading alpha
   color: string;
   size: number;
-  type: 'DOT' | 'SHOCKWAVE' | 'SQUARE' | 'SHELL' | 'STAR' | 'MUZZLE' | 'BEAM_CORE' | 'LIGHTNING' | 'FLASH' | 'LOTUS_BLOOM';
+  type: 'DOT' | 'SHOCKWAVE' | 'SQUARE' | 'SHELL' | 'STAR' | 'MUZZLE' | 'BEAM_CORE' | 'LIGHTNING' | 'FLASH' | 'NOVA_BLAST';
   drag: number;   // Friction (0-1)
   growth: number; // Size change over time
   rotation?: number; 
@@ -175,5 +181,5 @@ export interface ExpGem extends Entity {
 
 export interface HealthDrop extends Entity {
   healAmount: number;
-  life: number; // Hearts might despawn after a long time
+  life: number;
 }

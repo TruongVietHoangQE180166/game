@@ -78,6 +78,41 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
 
     // --- ENEMY RENDERING (LAYER 1: ATTACK INDICATORS) ---
     enemies.forEach(e => {
+      // 1. DASHER TELEGRAPH (Red Line)
+      if (e.aiType === 'DASHER' && e.attackState === 'WARN') {
+         ctx.save();
+         ctx.beginPath();
+         ctx.moveTo(e.x, e.y);
+         // Draw a line towards target
+         const tx = e.dashTarget?.x || player.x;
+         const ty = e.dashTarget?.y || player.y;
+         const angle = Math.atan2(ty - e.y, tx - e.x);
+         const dist = 400; // Dash distance
+         ctx.lineTo(e.x + Math.cos(angle) * dist, e.y + Math.sin(angle) * dist);
+         ctx.strokeStyle = `rgba(134, 239, 172, ${0.3 + Math.random() * 0.5})`; // Greenish glitch
+         ctx.lineWidth = 2;
+         ctx.setLineDash([5, 5]);
+         ctx.stroke();
+         ctx.restore();
+      }
+
+      // 2. ELITE STOMP TELEGRAPH
+      if (e.type === 'ELITE' && e.attackPattern === 'STOMP' && e.attackState === 'WARN') {
+          const progress = Math.min(1, (e.stateTimer || 0) / 1.0); // 1.0 is warn duration
+          ctx.save();
+          ctx.translate(e.x, e.y);
+          ctx.beginPath();
+          ctx.arc(0, 0, 150, 0, Math.PI*2);
+          ctx.strokeStyle = 'rgba(220, 38, 38, 0.4)';
+          ctx.stroke();
+          
+          ctx.beginPath();
+          ctx.arc(0, 0, 150 * progress, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(220, 38, 38, 0.2)';
+          ctx.fill();
+          ctx.restore();
+      }
+
       // BOSS 1: SLAM WARNING (Filling Circle)
       if (e.attackPattern === 'SLAM' && e.attackState === 'WARN') {
           const duration = 1.5; 
@@ -190,6 +225,12 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
       ctx.fillRect(-e.width/2 + 6, -e.height/2 + 6, e.width, e.height);
       
       ctx.fillStyle = (e.flashTime > 0) ? '#fff' : (e.isCharging && e.aiType === 'KAMIKAZE' ? (Math.floor(gameTime * 20) % 2 === 0 ? '#ef4444' : '#fff') : e.color);
+      
+      // Dasher visual effect (Afterimage trail handling is in logic, here just color shift)
+      if (e.aiType === 'DASHER' && e.attackState === 'DASHING') {
+          ctx.fillStyle = '#fff'; // White hot when dashing
+      }
+
       ctx.strokeStyle = e.borderColor;
       ctx.lineWidth = e.aiType === 'BOSS' ? 8 : (e.type === 'ELITE' ? 6 : 4);
       
@@ -199,7 +240,7 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
       ctx.fillStyle = e.aiType === 'BOSS' ? '#ef4444' : '#000';
       const eyeSize = e.width * 0.15; const eyeOffset = e.width * 0.2;
       
-      if (e.attackState === 'FIRING' || e.isCharging) {
+      if (e.attackState === 'FIRING' || e.isCharging || e.attackState === 'DASHING') {
           ctx.beginPath();
           ctx.moveTo(-eyeOffset - eyeSize, -5);
           ctx.lineTo(-eyeOffset, 5);
@@ -328,37 +369,6 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.width * 0.4, 0, Math.PI * 2);
             ctx.fill();
-        } else if (p.type === 'LOTUS_PETAL') {
-             // Lotus Petal (Pink Glowing Projectile)
-            const tailLength = p.width * 2;
-            const tailX = p.x - Math.cos(p.rotation) * tailLength;
-            const tailY = p.y - Math.sin(p.rotation) * tailLength;
-
-            const grad = ctx.createLinearGradient(p.x, p.y, tailX, tailY);
-            grad.addColorStop(0, '#fff');        
-            grad.addColorStop(0.3, '#f472b6'); // Pink-400
-            grad.addColorStop(1, 'rgba(244, 114, 182, 0)');
-
-            ctx.shadowColor = '#ec4899'; // Pink-500
-            ctx.shadowBlur = 10;
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = p.width * 0.5;
-            ctx.lineCap = 'round';
-
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(tailX, tailY);
-            ctx.stroke();
-            
-            // Petal Shape Head
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, p.width/2, p.width/4, 0, 0, Math.PI*2);
-            ctx.fill();
-            ctx.restore();
         } else {
             // Enhanced Enemy Bullet (Glowing Orb)
             const pulse = 1 + Math.sin(gameTime * 20) * 0.1;
@@ -386,8 +396,50 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
 
     const pSize = player.size;
     const px = player.x; const py = player.y;
+    
+    // --- SHIELD VISUALS (New) ---
+    if (stats.currentArmor > 0) {
+        ctx.save();
+        ctx.translate(px, py);
+        
+        const shieldPercent = stats.currentArmor / stats.maxArmor;
+        const shieldRadius = pSize * 0.9;
+        const pulse = Math.sin(gameTime * 8) * 0.05 + 1; // Breathing effect
+        
+        ctx.scale(pulse, pulse);
+        
+        // Inner Glow
+        ctx.beginPath();
+        ctx.arc(0, 0, shieldRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(6, 182, 212, ${0.1 + (shieldPercent * 0.2)})`; // Cyan-500 with variable opacity
+        ctx.fill();
+        
+        // Outer Rings (Rotating)
+        ctx.rotate(gameTime * 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, shieldRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(34, 211, 238, ${0.4 + (shieldPercent * 0.4)})`; // Cyan-400
+        ctx.lineWidth = 2;
+        ctx.setLineDash([15, 10]); // Sci-fi dashes
+        ctx.stroke();
+        
+        // Counter-rotating inner ring
+        ctx.rotate(gameTime * -3);
+        ctx.beginPath();
+        ctx.arc(0, 0, shieldRadius * 0.85, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(103, 232, 249, ${0.3 + (shieldPercent * 0.3)})`; // Cyan-300
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+
+    // Player Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(px - pSize/2 + 6, py - pSize/2 + 6, pSize, pSize);
-    ctx.fillStyle = stats.currentArmor > 0 ? '#3b82f6' : '#171717'; 
+    
+    // Player Body
+    ctx.fillStyle = '#171717'; 
     ctx.strokeStyle = '#000'; ctx.lineWidth = 5;
     ctx.fillRect(px - pSize/2, py - pSize/2, pSize, pSize); ctx.strokeRect(px - pSize/2, py - pSize/2, pSize, pSize);
     ctx.fillStyle = '#fff'; ctx.fillRect(px - 10, py - 6, 6, 6); ctx.fillRect(px + 4, py - 6, 6, 6);
@@ -466,48 +518,29 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
             ctx.shadowBlur = 5; ctx.strokeStyle = '#fff'; ctx.globalAlpha = fade * flicker; drawPath(p.path, p.size * 0.4, fade);
              if (p.branches) p.branches.forEach(b => drawPath(b, p.size * 0.2, fade));
             ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'source-over';
-        } else if (p.type === 'LOTUS_BLOOM') {
-             // Render beautiful Mandala / Lotus Flower on ground
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#f472b6';
-            
-            // Layers of petals
-            const petals = 8;
-            for(let j=0; j<3; j++) {
-                const layerSize = p.size * (1 - j * 0.2);
-                const layerAlpha = alpha * (1 - j * 0.2);
-                ctx.fillStyle = j % 2 === 0 ? p.color : '#fbcfe8'; 
-                ctx.globalAlpha = layerAlpha;
-                
-                ctx.save();
-                ctx.rotate(j * Math.PI/8); // Offset layers
-                for(let i=0; i<petals; i++) {
-                    ctx.rotate(Math.PI * 2 / petals);
-                    ctx.beginPath();
-                    // Draw petal shape
-                    ctx.moveTo(0, 0);
-                    ctx.quadraticCurveTo(layerSize * 0.3, -layerSize * 0.2, 0, -layerSize);
-                    ctx.quadraticCurveTo(-layerSize * 0.3, -layerSize * 0.2, 0, 0);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
-
-            // Glowing Center
-            ctx.beginPath();
-            ctx.arc(0, 0, p.size * 0.2, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
-            ctx.globalAlpha = alpha;
-            ctx.fill();
-
-            // Ring
+        } else if (p.type === 'NOVA_BLAST') {
+            // Expanding Nova Blast from center
+            // Filled circle with diminishing opacity
             ctx.beginPath();
             ctx.arc(0, 0, p.size, 0, Math.PI * 2);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = alpha * 0.4; // Semi-transparent core
+            ctx.fill();
+
+            // Expanding ring
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size * (1 - alpha * 0.5), 0, Math.PI * 2);
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 10 * alpha;
+            ctx.globalAlpha = alpha;
             ctx.stroke();
 
-            ctx.shadowBlur = 0;
+            // Inner intense core
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.globalAlpha = alpha * 0.8;
+            ctx.fill();
         } else {
             ctx.fillStyle = p.color; 
             ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); 
