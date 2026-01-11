@@ -97,8 +97,8 @@ export interface Entity {
 }
 
 export interface Enemy extends Entity {
-  type: 'NORM_1' | 'NORM_2' | 'SHOOTER' | 'EXPLODER' | 'ELITE' | 'BOSS_1' | 'BOSS_2' | 'BOSS_3';
-  aiType: 'MELEE' | 'RANGED' | 'KAMIKAZE' | 'DASHER' | 'BOSS'; // Added DASHER
+  type: 'NORM_1' | 'NORM_2' | 'SHOOTER' | 'EXPLODER' | 'ELITE' | 'SPLITTER' | 'MINI' | 'BOSS_1' | 'BOSS_2' | 'BOSS_3';
+  aiType: 'MELEE' | 'RANGED' | 'KAMIKAZE' | 'DASHER' | 'BOSS' | 'SLIME' | 'MINI'; 
   hp: number;
   maxHP: number;
   speed: number;
@@ -114,8 +114,8 @@ export interface Enemy extends Entity {
 
   // Advanced Attack Logic
   attackRange?: number;
-  attackPattern?: 'BASIC' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL' | 'DASH' | 'STOMP';
-  attackState?: 'IDLE' | 'WARN' | 'FIRING' | 'COOLDOWN' | 'CHARGING' | 'DASHING'; 
+  attackPattern?: 'BASIC' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL' | 'DASH' | 'STOMP' | 'MISSILE' | 'BLACK_HOLE' | 'GRID';
+  attackState?: 'IDLE' | 'WARN' | 'FIRING' | 'COOLDOWN' | 'CHARGING' | 'DASHING' | 'PULLING'; 
   stateTimer?: number;
   burstCount?: number;
   secondaryTimer?: number;
@@ -124,9 +124,10 @@ export interface Enemy extends Entity {
   isCharging?: boolean; 
   attackTimer?: number;
   
-  // Laser/Dash Specifics
+  // Laser/Dash/Missile Specifics
   laserAngle?: number;
   dashTarget?: { x: number, y: number };
+  missileTargets?: { x: number, y: number }[]; // For Missile Rain
   rotationSpeed?: number;
 }
 

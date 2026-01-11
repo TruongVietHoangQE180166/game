@@ -189,7 +189,8 @@ const App: React.FC = () => {
 
     // 1. Player & Zone
     updateZoneLogic(s, zoneRef.current, playerRef.current, floatingTextsRef.current, dt);
-    updatePlayerMovement(playerRef.current, keysRef.current, s, zoneRef.current, dt);
+    // PASS ACTIVE BOSS TO PLAYER MOVEMENT FOR BLACK HOLE LOGIC
+    updatePlayerMovement(playerRef.current, keysRef.current, s, zoneRef.current, dt, activeBoss);
 
     // 2. Enemy Spawning
     spawnTimerRef.current += dt;
@@ -227,15 +228,42 @@ const App: React.FC = () => {
     );
     if (iFrameRef.current > 0) iFrameRef.current -= dt;
 
-    // 5. Deaths & Drops
+    // 5. Deaths & Drops & SPLITTER LOGIC
+    const newMinis: Enemy[] = [];
     enemiesRef.current.forEach(e => {
       if (e.hp <= 0) {
         if (e.aiType !== 'KAMIKAZE') {
             setStats(prev => ({ ...prev, kills: prev.kills + 1 }));
+            
+            // --- SPLITTER SPAWN LOGIC ---
+            if (e.type === 'SPLITTER') {
+                for(let k=0; k<3; k++) {
+                   newMinis.push({
+                      id: Math.random().toString(),
+                      x: e.x + getRandomRange(-20, 20), y: e.y + getRandomRange(-20, 20),
+                      width: 25, height: 25,
+                      type: 'MINI', aiType: 'MINI', hp: e.maxHP * 0.3, maxHP: e.maxHP * 0.3,
+                      speed: 180, damage: 10, color: '#34d399', borderColor: '#064e3b',
+                      flashTime: 0, attackRange: 0, attackPattern: 'BASIC'
+                   });
+                }
+                // Slime explosion particles
+                for(let j=0; j<10; j++) {
+                     particlesRef.current.push({
+                        id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0,
+                        vx: getRandomRange(-100, 100), vy: getRandomRange(-100, 100),
+                        life: 0.5, maxLife: 0.5, color: '#10b981', size: 5, type: 'SQUARE', drag: 0.9, growth: -2
+                     });
+                }
+            }
+            // ----------------------------
+
             let xpAmount = 25; let xpSize = 12; let heartChance = 0.01; let healAmount = 10;
             if (e.type.includes('BOSS')) { xpAmount = 2000; xpSize = 24; heartChance = 1.0; healAmount = 100; } 
             else if (e.type === 'ELITE') { xpAmount = 200; xpSize = 16; heartChance = 0.15; healAmount = 40; } 
             else if (e.type === 'EXPLODER') { xpAmount = 40; xpSize = 12; heartChance = 0.02; healAmount = 15; }
+            else if (e.type === 'SPLITTER') { xpAmount = 60; xpSize = 14; heartChance = 0.05; }
+            
             gemsRef.current.push({
               id: Math.random().toString(), x: e.x, y: e.y, width: xpSize, height: xpSize,
               amount: xpAmount, color: 'oklch(0.5635 0.2408 260.8178)'
@@ -251,7 +279,9 @@ const App: React.FC = () => {
         if (activeBoss && e.id === activeBoss.id) setActiveBoss(null);
       }
     });
-    enemiesRef.current = enemiesRef.current.filter(e => e.hp > 0);
+    
+    // Filter dead enemies AND Add new minis
+    enemiesRef.current = enemiesRef.current.filter(e => e.hp > 0).concat(newMinis);
 
     // 6. Collectibles
     const { nextGems, nextHealth } = updateCollectibles(

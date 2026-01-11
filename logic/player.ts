@@ -1,5 +1,5 @@
 
-import { PlayerStats, FloatingText } from '../types';
+import { PlayerStats, FloatingText, Enemy } from '../types';
 import { getDistance } from '../utils';
 
 interface PlayerRef {
@@ -20,7 +20,8 @@ export const updatePlayerMovement = (
   keys: { [key: string]: boolean },
   stats: PlayerStats,
   zone: ZoneState,
-  dt: number
+  dt: number,
+  activeBoss: Enemy | null
 ) => {
   let dx = 0, dy = 0;
   if (keys['w'] || keys['arrowup']) dy -= 1;
@@ -31,10 +32,22 @@ export const updatePlayerMovement = (
   let nextX = player.x;
   let nextY = player.y;
 
+  // Normal Movement
   if (dx !== 0 || dy !== 0) {
     const length = Math.sqrt(dx * dx + dy * dy);
     nextX += (dx / length) * stats.moveSpeed * dt;
     nextY += (dy / length) * stats.moveSpeed * dt;
+  }
+
+  // Boss 2: Black Hole Pull
+  if (activeBoss && activeBoss.type === 'BOSS_2' && activeBoss.attackPattern === 'BLACK_HOLE' && activeBoss.attackState === 'PULLING') {
+      const dist = getDistance(player.x, player.y, activeBoss.x, activeBoss.y);
+      if (dist < 800) {
+          const pullStrength = 300 * (1 - dist / 800) + 50;
+          const angle = Math.atan2(activeBoss.y - player.y, activeBoss.x - player.x);
+          nextX += Math.cos(angle) * pullStrength * dt;
+          nextY += Math.sin(angle) * pullStrength * dt;
+      }
   }
 
   // Zone Constraint
