@@ -101,6 +101,35 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
 
     // --- ENEMY RENDERING (LAYER 1: ATTACK INDICATORS) ---
     enemies.forEach(e => {
+      // 0. KAMIKAZE INDICATOR (New)
+      if (e.aiType === 'KAMIKAZE' && e.isCharging) {
+          const BLAST_RADIUS = 150;
+          const progress = Math.min(1, (e.attackTimer || 0) / 1.0); // 1.0 is charge duration
+          
+          ctx.save(); 
+          ctx.translate(e.x, e.y);
+          
+          // Outer warning circle (Danger Zone)
+          ctx.beginPath(); 
+          ctx.arc(0, 0, BLAST_RADIUS, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(239, 68, 68, 0.2)`; 
+          ctx.fill();
+          ctx.strokeStyle = `rgba(239, 68, 68, 0.5)`; 
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          // Inner pulsing circle (Timing Indicator)
+          // Shrinks to 0 when it explodes
+          const innerRadius = BLAST_RADIUS * (1 - progress);
+          ctx.beginPath();
+          ctx.arc(0, 0, Math.max(0, innerRadius), 0, Math.PI * 2);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          ctx.restore();
+      }
+
       // 1. DASHER TELEGRAPH
       if (e.aiType === 'DASHER' && e.attackState === 'WARN') {
          ctx.save();
@@ -224,7 +253,8 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
       }
 
       if (e.aiType === 'KAMIKAZE' && e.isCharging) {
-         ctx.translate(getRandomRange(-3, 3), getRandomRange(-3, 3));
+         // Violent shake effect when charging
+         ctx.translate(getRandomRange(-5, 5), getRandomRange(-5, 5));
          ctx.fillStyle = Math.floor(gameTime * 15) % 2 === 0 ? '#ef4444' : '#fff';
       } else {
          ctx.fillStyle = e.flashTime > 0 ? '#fff' : e.color;

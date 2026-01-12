@@ -102,6 +102,35 @@ export const createShieldHitEffect = (
   });
 };
 
+export const createExplosionParticles = (particles: Particle[], x: number, y: number, color: string) => {
+    // 1. Core Blast
+    particles.push({
+        id: Math.random().toString(), x, y, width: 0, height: 0,
+        vx: 0, vy: 0, life: 0.5, maxLife: 0.5,
+        color: color, size: 80, type: 'SHOCKWAVE',
+        drag: 0, growth: 400
+    });
+
+    // 2. Fire/Smoke debris
+    const particleCount = 30;
+    for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = getRandomRange(200, 600);
+        const life = getRandomRange(0.4, 0.8);
+        particles.push({
+            id: Math.random().toString(),
+            x, y, width: 0, height: 0,
+            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            life: life, maxLife: life,
+            color: Math.random() > 0.5 ? '#f97316' : '#1f2937', // Orange or Dark Grey
+            size: getRandomRange(10, 20),
+            type: 'SQUARE',
+            drag: 0.9, growth: -10,
+            rotation: Math.random() * Math.PI, vRot: getRandomRange(-20, 20)
+        });
+    }
+};
+
 export const createShellCasing = (particles: Particle[], x: number, y: number, angle: number) => {
   const perp = angle + Math.PI/2 + getRandomRange(-0.2, 0.2);
   const speed = getRandomRange(150, 250);

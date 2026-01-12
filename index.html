@@ -1,89 +1,89 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hành Trình Tư Tưởng - Survival RPG</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
-      
-      :root {
-        --background: oklch(1.0000 0 0);
-        --foreground: oklch(0 0 0);
-        --card: oklch(1.0000 0 0);
-        --card-foreground: oklch(0 0 0);
-        --popover: oklch(1.0000 0 0);
-        --popover-foreground: oklch(0 0 0);
-        --primary: oklch(0.6489 0.2370 26.9728);
-        --primary-foreground: oklch(1.0000 0 0);
-        --secondary: oklch(0.9680 0.2110 109.7692);
-        --secondary-foreground: oklch(0 0 0);
-        --muted: oklch(0.9551 0 0);
-        --muted-foreground: oklch(0.3211 0 0);
-        --accent: oklch(0.5635 0.2408 260.8178);
-        --accent-foreground: oklch(1.0000 0 0);
-        --destructive: oklch(0 0 0);
-        --destructive-foreground: oklch(1.0000 0 0);
-        --border: oklch(0 0 0);
-        --input: oklch(0 0 0);
-        --ring: oklch(0.6489 0.2370 26.9728);
-        --font-sans: 'DM Sans', sans-serif;
-        --font-mono: 'Space Mono', monospace;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hành Trình Tư Tưởng - Survival RPG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+    :root {
+      --background: oklch(1.0000 0 0);
+      --foreground: oklch(0 0 0);
+      --card: oklch(1.0000 0 0);
+      --card-foreground: oklch(0 0 0);
+      --popover: oklch(1.0000 0 0);
+      --popover-foreground: oklch(0 0 0);
+      --primary: oklch(0.6489 0.2370 26.9728);
+      --primary-foreground: oklch(1.0000 0 0);
+      --secondary: oklch(0.9680 0.2110 109.7692);
+      --secondary-foreground: oklch(0 0 0);
+      --muted: oklch(0.9551 0 0);
+      --muted-foreground: oklch(0.3211 0 0);
+      --accent: oklch(0.5635 0.2408 260.8178);
+      --accent-foreground: oklch(1.0000 0 0);
+      --destructive: oklch(0 0 0);
+      --destructive-foreground: oklch(1.0000 0 0);
+      --border: oklch(0 0 0);
+      --input: oklch(0 0 0);
+      --ring: oklch(0.6489 0.2370 26.9728);
+      --font-sans: 'DM Sans', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      overflow: hidden;
+      font-family: var(--font-sans);
+      user-select: none;
+      color: var(--foreground);
+    }
+
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      background-color: oklch(0.98 0.01 0);
+    }
+
+    .neo-shadow {
+      box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+    }
+
+    .neo-shadow-sm {
+      box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+    }
+
+    .pixel-cartoon {
+      image-rendering: pixelated;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
       }
 
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--background);
-        overflow: hidden;
-        font-family: var(--font-sans);
-        user-select: none;
-        color: var(--foreground);
+      50% {
+        transform: scale(1.05);
       }
 
-      canvas {
-        display: block;
-        image-rendering: pixelated;
-        background-color: oklch(0.98 0.01 0);
+      100% {
+        transform: scale(1);
       }
+    }
 
-      .neo-shadow {
-        box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
-      }
-      
-      .neo-shadow-sm {
-        box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
-      }
+    .animate-pop {
+      animation: pop 0.2s ease-out;
+    }
+  </style>
+</head>
 
-      .pixel-cartoon {
-        image-rendering: pixelated;
-      }
-      
-      @keyframes pop {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      
-      .animate-pop {
-        animation: pop 0.2s ease-out;
-      }
-    </style>
-    <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.3"
-  }
-}
-</script>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>

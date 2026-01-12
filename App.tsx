@@ -95,6 +95,7 @@ const App: React.FC = () => {
   });
   
   const winTriggeredRef = useRef(false);
+  const gameOverTriggeredRef = useRef(false);
 
   // Pool of available question indices to prevent repetition
   const availableQuestionIndicesRef = useRef<number[]>([]);
@@ -183,18 +184,21 @@ const App: React.FC = () => {
       tripleBossSpawned: false
     };
     winTriggeredRef.current = false;
+    gameOverTriggeredRef.current = false;
     
     lastTimeRef.current = performance.now();
     startLoading(GameState.PLAYING);
   };
 
   const handleGameOver = () => {
+    if (gameOverTriggeredRef.current || winTriggeredRef.current) return;
+    gameOverTriggeredRef.current = true;
     handleSaveHistory(statsRef.current, gameTimeRef.current);
     startLoading(GameState.GAMEOVER, 1500);
   };
   
   const handleWin = () => {
-      if (winTriggeredRef.current) return;
+      if (winTriggeredRef.current || gameOverTriggeredRef.current) return;
       winTriggeredRef.current = true;
       handleSaveHistory(statsRef.current, gameTimeRef.current);
       // Wait a moment for the final explosion
