@@ -30,14 +30,14 @@ const createBoss = (
       const x = player.x + Math.cos(angle) * dist;
       const y = player.y + Math.sin(angle) * dist;
 
-      // BOSS CONFIGURATION (LOWER HP / HIGH OFFENSE)
-      let hp = 50000; 
-      let size = 120; 
+      // BOSS CONFIGURATION
+      // UPDATED: Damage is now fixed per Tier, NOT scaled by time to prevent one-shots
+      let hp = 55000; 
+      let size = 300; 
       let color = '#000'; 
       let borderColor = '#ef4444';
       
-      // Damage increased base scale
-      let dmg = 60 * scale; 
+      let dmg = 50; // Default base
       
       let speed = 160; 
       let attackPattern: Enemy['attackPattern'] = 'SLAM';
@@ -45,21 +45,29 @@ const createBoss = (
       if (type === 'BOSS_1') { 
         attackPattern = 'MISSILE'; 
         color = '#1f2937';
-        hp = 35000; // REDUCED drastically (was 60k)
-        speed = 280; 
+        hp = 45000; // Increased from 40000
+        speed = 280;
+        dmg = 80; // Fixed Damage Tier 1
       } else if (type === 'BOSS_2') {
         attackPattern = 'BLACK_HOLE';
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
-        hp = 80000; // REDUCED drastically (was 120k)
+        hp = 105000; // Increased from 90000
         speed = 300; 
+        dmg = 110; // Fixed Damage Tier 2
       } else {
         // BOSS 3
         attackPattern = 'SPIRAL';
         color = '#450a0a'; 
         borderColor = '#facc15'; 
-        hp = 140000; // REDUCED drastically (was 200k)
-        speed = 260; 
+        hp = 190000; // Increased from 160000
+        speed = 260;
+        dmg = 140; // Fixed Damage Tier 3
+      }
+
+      // Slightly increase damage only for the Triple Boss phase (Endless challenge)
+      if (scale > 5.0) {
+          dmg *= 1.2;
       }
 
       return {
@@ -141,9 +149,9 @@ export const handleEnemySpawning = (
       return;
   }
   
-  // === SPAWN CLUSTERS ===
-  const baseCount = 10 + Math.floor(gameTime / 10); 
-  const spawnCount = Math.min(60, baseCount); 
+  // === SPAWN CLUSTERS (REDUCED COUNT) ===
+  const baseCount = 3 + Math.floor(gameTime / 20); 
+  const spawnCount = Math.min(12, baseCount); 
   
   const angle = Math.random() * Math.PI * 2;
   const dist = 1000; 
@@ -158,10 +166,12 @@ export const handleEnemySpawning = (
 
       let type: Enemy['type'] = 'NORM_1';
       let aiType: Enemy['aiType'] = 'MELEE';
-      let hp = 100 * scale; 
+      
+      // HP Buffed ~3.5x - 4.0x for Normal Mobs -> Increased base to 400
+      let hp = 400 * scale; 
       let speed = 140; 
       let dmg = 25 * scale;
-      let size = 30;
+      let size = 72; 
       let color = '#d1d5db'; 
       let borderColor = '#374151';
       let attackRange = 0;
@@ -169,35 +179,37 @@ export const handleEnemySpawning = (
       
       const r = Math.random();
 
-      // PHASE LOGIC 
+      // PHASE LOGIC (HP Values increased by ~15-20% compared to previous version)
       if (gameTime < 60) {
-          if (r < 0.9) { type = 'NORM_1'; hp = 20 * scale; speed = 120; } 
-          else { type = 'NORM_2'; aiType = 'DASHER'; hp = 35 * scale; speed = 110; color='#86efac'; size=28; attackPattern = 'DASH';} 
+          if (r < 0.9) { type = 'NORM_1'; hp = 120 * scale; speed = 120; size = 72; } 
+          else { type = 'NORM_2'; aiType = 'DASHER'; hp = 180 * scale; speed = 110; color='#86efac'; size=68; attackPattern = 'DASH';} 
       } 
       else if (gameTime < 120) {
-          if (r < 0.7) { type = 'NORM_1'; hp = 35 * scale; speed=135; } 
-          else if (r < 0.9) { type = 'NORM_2'; aiType = 'DASHER'; hp = 50 * scale; speed=125; color='#86efac'; attackPattern = 'DASH'; } 
-          else { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 20 * scale; speed = 360; color='#f97316'; size=28; dmg=80*scale; } 
+          if (r < 0.7) { type = 'NORM_1'; hp = 180 * scale; speed=135; size = 72; } 
+          else if (r < 0.9) { type = 'NORM_2'; aiType = 'DASHER'; hp = 260 * scale; speed=125; color='#86efac'; size=68; attackPattern = 'DASH'; } 
+          else { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 110 * scale; speed = 360; color='#f97316'; size=62; dmg=80*scale; } 
       } 
       else if (gameTime < 180) {
-          if (r < 0.5) { type = 'NORM_2'; aiType = 'DASHER'; hp = 65 * scale; speed=135; color='#86efac'; attackPattern = 'DASH'; } 
-          else if (r < 0.7) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 35 * scale; speed=390; color='#f97316'; size=28; dmg=100*scale;} 
-          else if (r < 0.9) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 45 * scale; speed = 110; color='#c084fc'; size=35; attackRange = 400; attackPattern = 'SINGLE'; } 
-          else { type = 'NORM_1'; hp = 40 * scale; speed=145; } 
+          if (r < 0.5) { type = 'NORM_2'; aiType = 'DASHER'; hp = 350 * scale; speed=135; color='#86efac'; size=68; attackPattern = 'DASH'; } 
+          else if (r < 0.7) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 180 * scale; speed=390; color='#f97316'; size=62; dmg=100*scale;} 
+          else if (r < 0.9) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 240 * scale; speed = 110; color='#c084fc'; size=78; attackRange = 400; attackPattern = 'SINGLE'; } 
+          else { type = 'NORM_1'; hp = 220 * scale; speed=145; size=72; } 
       } 
       else if (gameTime < 240) {
-          if (r < 0.2) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 40 * scale; speed=410; color='#f97316'; size=28; dmg=120*scale; } 
-          else if (r < 0.4) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 60 * scale; speed=110; color='#c084fc'; size=35; attackRange = 400; attackPattern = 'SINGLE'; } 
-          else if (r < 0.6) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 75 * scale; speed = 125; color='#a855f7'; size=38; attackRange = 500; attackPattern = 'BURST'; borderColor = '#f0abfc';} 
-          else if (r < 0.8) { type = 'SPLITTER'; aiType = 'SLIME'; hp = 140 * scale; speed = 95; color='#10b981'; size=45; borderColor='#064e3b'; dmg = 30*scale;} 
-          else { type = 'NORM_2'; aiType = 'DASHER'; hp = 90 * scale; speed=145; color='#86efac'; attackPattern = 'DASH'; } 
+          if (r < 0.2) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 220 * scale; speed=410; color='#f97316'; size=62; dmg=120*scale; } 
+          else if (r < 0.4) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 300 * scale; speed=110; color='#c084fc'; size=78; attackRange = 400; attackPattern = 'SINGLE'; } 
+          // UPDATED: Elite Shooter instead of normal shooter
+          else if (r < 0.6) { type = 'ELITE_SHOOTER'; aiType = 'RANGED'; hp = 450 * scale; speed = 125; color='#f97316'; size=82; attackRange = 550; attackPattern = 'BURST'; borderColor = '#ea580c';} 
+          else if (r < 0.8) { type = 'SPLITTER'; aiType = 'SLIME'; hp = 700 * scale; speed = 95; color='#10b981'; size=115; borderColor='#064e3b'; dmg = 30*scale;} 
+          else { type = 'NORM_2'; aiType = 'DASHER'; hp = 450 * scale; speed=145; color='#86efac'; size=68; attackPattern = 'DASH'; } 
       }
       else {
-          if (r < 0.2) { type = 'SPLITTER'; aiType = 'SLIME'; hp = 180 * scale; speed=95; color='#10b981'; size=50; borderColor='#064e3b'; dmg=40*scale; } 
-          else if (r < 0.45) { type = 'SHOOTER'; aiType = 'RANGED'; hp = 110 * scale; speed=125; color='#a855f7'; size=38; attackRange = 500; attackPattern = 'BURST'; borderColor = '#f0abfc';} 
-          else if (r < 0.65) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 60 * scale; speed=430; color='#f97316'; size=28; dmg=150*scale; } 
-          else if (r < 0.85) { type = 'NORM_2'; aiType = 'DASHER'; hp = 110 * scale; speed=155; color='#86efac'; attackPattern = 'DASH'; } 
-          else { type = 'ELITE'; aiType = 'MELEE'; hp = 800 * scale; speed = 120; size=70; color='#dc2626'; borderColor='#fff'; dmg=100*scale; attackPattern = 'STOMP'; } 
+          if (r < 0.2) { type = 'SPLITTER'; aiType = 'SLIME'; hp = 950 * scale; speed=95; color='#10b981'; size=120; borderColor='#064e3b'; dmg=40*scale; } 
+          // UPDATED: Elite Shooter
+          else if (r < 0.45) { type = 'ELITE_SHOOTER'; aiType = 'RANGED'; hp = 650 * scale; speed=125; color='#f97316'; size=85; attackRange = 550; attackPattern = 'BURST'; borderColor = '#ea580c';} 
+          else if (r < 0.65) { type = 'EXPLODER'; aiType = 'KAMIKAZE'; hp = 300 * scale; speed=430; color='#f97316'; size=62; dmg=150*scale; } 
+          else if (r < 0.85) { type = 'NORM_2'; aiType = 'DASHER'; hp = 550 * scale; speed=155; color='#86efac'; size=68; attackPattern = 'DASH'; } 
+          else { type = 'ELITE'; aiType = 'MELEE'; hp = 4200 * scale; speed = 120; size=240; color='#dc2626'; borderColor='#fff'; dmg=100*scale; attackPattern = 'STOMP'; } 
       }
 
       enemies.push({
@@ -259,14 +271,14 @@ export const updateEnemies = (
     }
     else if (e.type === 'ELITE' && e.attackPattern === 'STOMP') {
         if (e.attackState === 'IDLE') {
-            if (dist < 200 && e.stateTimer > 3.0) { e.attackState = 'WARN'; e.stateTimer = 0; }
+            if (dist < 250 && e.stateTimer > 3.0) { e.attackState = 'WARN'; e.stateTimer = 0; }
         }
         else if (e.attackState === 'WARN') {
             shouldMove = false;
             if (e.stateTimer > 1.2) { 
                 e.attackState = 'FIRING'; e.stateTimer = 0; shakeManager.shake(5);
-                particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0, vx:0, vy:0, life:0.4, maxLife:0.4, color: '#dc2626', size: 150, type: 'SHOCKWAVE', drag:0, growth: 100 });
-                if (dist < 150) takeDamage(e.damage);
+                particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0, vx:0, vy:0, life:0.4, maxLife:0.4, color: '#dc2626', size: 250, type: 'SHOCKWAVE', drag:0, growth: 100 });
+                if (dist < 250) takeDamage(e.damage);
             }
         }
         else if (e.attackState === 'FIRING') {
@@ -302,8 +314,8 @@ export const updateEnemies = (
             if (e.attackPattern === 'SLAM') {
                  shakeManager.shake(30); 
                  createSimpleParticles(particles, e.x, e.y, '#ef4444', 60);
-                 particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0, vx:0, vy:0, life:0.5, maxLife:0.5, color: '#ef4444', size: 300, type: 'SHOCKWAVE', drag:0, growth: 1200 });
-                 if (dist < 350) takeDamage(90); 
+                 particles.push({ id: Math.random().toString(), x: e.x, y: e.y, width:0, height:0, vx:0, vy:0, life:0.5, maxLife:0.5, color: '#ef4444', size: 400, type: 'SHOCKWAVE', drag:0, growth: 1200 });
+                 if (dist < 450) takeDamage(90); 
             } 
             else if (e.attackPattern === 'MISSILE') {
                 shakeManager.shake(20);
@@ -348,7 +360,7 @@ export const updateEnemies = (
              let param = -1; if (len_sq !== 0) param = dot / len_sq;
              let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
              const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
-             if (distToLine < 50) { takeDamage(12); } 
+             if (distToLine < 80) { takeDamage(12); } // Increased hitbox for laser
 
              shouldMove = false;
              if (e.stateTimer > 1.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
@@ -430,15 +442,19 @@ export const updateEnemies = (
                          type: 'DOT', drag:0, growth:0 
                     });
                     
-                    const count = 16; 
+                    // MODIFIED: SPARSER GRID
+                    const count = 9; // Reduced from 16 to 9 to make it sparser
+                    const spacing = 240; // Increased spacing from 90 to 240
+                    const startOffset = (count * spacing) / 2;
+
                     for(let k=0; k<count; k++) {
                          projectiles.push({
                             id: Math.random().toString(), 
-                            x: isHorizontal ? player.x - 700 + k*90 : px, 
-                            y: isHorizontal ? py : player.y - 700 + k*90,
+                            x: isHorizontal ? player.x - startOffset + k*spacing : px, 
+                            y: isHorizontal ? py : player.y - startOffset + k*spacing,
                             width: 25, height: 25,
-                            vx: isHorizontal ? 0 : (Math.random() > 0.5 ? 350 : -350), 
-                            vy: isHorizontal ? (Math.random() > 0.5 ? 350 : -350) : 0,
+                            vx: isHorizontal ? 0 : (Math.random() > 0.5 ? 320 : -320), // Slower speed (350 -> 320)
+                            vy: isHorizontal ? (Math.random() > 0.5 ? 320 : -320) : 0,
                             damage: e.damage, life: 7, rotation: 0, type: 'ENEMY_BULLET', pierce: 0, color: '#ef4444'
                          });
                     }
@@ -514,12 +530,18 @@ export const updateEnemies = (
             e.secondaryTimer = (e.secondaryTimer || 0) + dt;
             if (e.secondaryTimer > 0.1) { 
                  const baseAngle = Math.atan2(player.y - e.y, player.x - e.x);
+                 // 3 Shots: -1, 0, 1
                  for(let i=-1; i<=1; i++) {
                     const finalAngle = baseAngle + (i * 0.2); 
+                    
+                    // Determine color based on type
+                    const bulletColor = e.type === 'ELITE_SHOOTER' ? '#f97316' : '#a855f7'; // Orange vs Purple
+                    
                     projectiles.push({
                         id: Math.random().toString(), x: e.x, y: e.y, width: 16, height: 16,
                         vx: Math.cos(finalAngle) * 400, vy: Math.sin(finalAngle) * 400,
-                        damage: e.damage, life: 3, rotation: finalAngle, type: 'ENEMY_BULLET', pierce: 0, color: '#a855f7'
+                        damage: e.damage, life: 3, rotation: finalAngle, type: 'ENEMY_BULLET', pierce: 0, 
+                        color: bulletColor
                     });
                  }
                  e.burstCount = (e.burstCount || 0) - 1; e.secondaryTimer = 0;
@@ -540,8 +562,8 @@ export const updateEnemies = (
              }
         } 
         else if (e.aiType === 'KAMIKAZE') {
-            // Trigger charge earlier (dist < 150)
-            if (dist < 150 && !e.isCharging) { e.isCharging = true; e.attackTimer = 0; }
+            // Trigger charge earlier (dist < 200) - Increased range for larger enemy
+            if (dist < 200 && !e.isCharging) { e.isCharging = true; e.attackTimer = 0; }
             
             if (e.isCharging) {
                e.attackTimer = (e.attackTimer || 0) + dt;
@@ -553,8 +575,8 @@ export const updateEnemies = (
                    createExplosionParticles(particles, e.x, e.y, '#ef4444');
                    shakeManager.shake(15);
                    
-                   // Damage in area (150 range)
-                   if (dist < 150) takeDamage(e.damage);
+                   // Damage in area (200 range) - Increased from 150
+                   if (dist < 200) takeDamage(e.damage);
                    
                    e.hp = 0; 
                }

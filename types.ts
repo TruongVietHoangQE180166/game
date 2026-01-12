@@ -110,7 +110,7 @@ export interface Entity {
 }
 
 export interface Enemy extends Entity {
-  type: 'NORM_1' | 'NORM_2' | 'SHOOTER' | 'EXPLODER' | 'ELITE' | 'SPLITTER' | 'MINI' | 'BOSS_1' | 'BOSS_2' | 'BOSS_3';
+  type: 'NORM_1' | 'NORM_2' | 'SHOOTER' | 'ELITE_SHOOTER' | 'EXPLODER' | 'ELITE' | 'SPLITTER' | 'MINI' | 'BOSS_1' | 'BOSS_2' | 'BOSS_3';
   aiType: 'MELEE' | 'RANGED' | 'KAMIKAZE' | 'DASHER' | 'BOSS' | 'SLIME' | 'MINI'; 
   hp: number;
   maxHP: number;

@@ -18,6 +18,63 @@ interface RenderState {
   offsets: { x: number, y: number };
 }
 
+// --- ASSET MANAGEMENT ---
+type SpriteStatus = 'LOADING' | 'LOADED' | 'ERROR';
+
+interface SpriteData {
+    img: HTMLImageElement;
+    status: SpriteStatus;
+    src: string;
+}
+
+// Map enemy types to sprite data
+const SPRITES: Record<string, SpriteData> = {};
+
+const loadSprite = (key: string, fileName: string) => {
+    // UPDATED: Explicitly point to the public folder
+    const src = `${fileName}`; 
+    const img = new Image();
+    
+    SPRITES[key] = {
+        img,
+        status: 'LOADING',
+        src
+    };
+
+    img.onload = () => {
+        SPRITES[key].status = 'LOADED';
+    };
+
+    img.onerror = () => {
+        SPRITES[key].status = 'ERROR';
+        // Only warn if it fails after the first attempt
+        console.warn(`[Renderer] Failed to load image: ${src}`);
+    };
+
+    // Add timestamp to bypass browser cache
+    img.src = `${src}?t=${Date.now()}`;
+};
+
+// Initialize Sprites
+const initSprites = () => {
+    // Mapping internal types to filenames
+    loadSprite('NORM_1', 'Monster1.png');
+    loadSprite('NORM_2', 'Monster2.png');
+    loadSprite('SHOOTER', 'Monster3.png');
+    loadSprite('EXPLODER', 'Monster4.png');
+    loadSprite('SPLITTER', 'Monster5.png');
+    loadSprite('MINI', 'Monster6.png');
+    loadSprite('ELITE', 'Monster7.png');
+    loadSprite('ELITE_SHOOTER', 'Monster8.png'); // New Elite Shooter
+
+    loadSprite('BOSS_1', 'Boss1.png');
+    loadSprite('BOSS_2', 'Boss2.png');
+    loadSprite('BOSS_3', 'Boss3.png');
+};
+
+// Run initialization once
+initSprites();
+
 export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) => {
     const { 
         stats, player, enemies, projectiles, particles, floatingTexts, 
@@ -101,32 +158,18 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
 
     // --- ENEMY RENDERING (LAYER 1: ATTACK INDICATORS) ---
     enemies.forEach(e => {
-      // 0. KAMIKAZE INDICATOR (New)
+      // 0. KAMIKAZE INDICATOR
       if (e.aiType === 'KAMIKAZE' && e.isCharging) {
           const BLAST_RADIUS = 150;
-          const progress = Math.min(1, (e.attackTimer || 0) / 1.0); // 1.0 is charge duration
-          
+          const progress = Math.min(1, (e.attackTimer || 0) / 1.0); 
           ctx.save(); 
           ctx.translate(e.x, e.y);
-          
-          // Outer warning circle (Danger Zone)
-          ctx.beginPath(); 
-          ctx.arc(0, 0, BLAST_RADIUS, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(239, 68, 68, 0.2)`; 
-          ctx.fill();
-          ctx.strokeStyle = `rgba(239, 68, 68, 0.5)`; 
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          
-          // Inner pulsing circle (Timing Indicator)
-          // Shrinks to 0 when it explodes
+          ctx.beginPath(); ctx.arc(0, 0, BLAST_RADIUS, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(239, 68, 68, 0.2)`; ctx.fill();
+          ctx.strokeStyle = `rgba(239, 68, 68, 0.5)`; ctx.lineWidth = 2; ctx.stroke();
           const innerRadius = BLAST_RADIUS * (1 - progress);
-          ctx.beginPath();
-          ctx.arc(0, 0, Math.max(0, innerRadius), 0, Math.PI * 2);
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          
+          ctx.beginPath(); ctx.arc(0, 0, Math.max(0, innerRadius), 0, Math.PI * 2);
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
           ctx.restore();
       }
 
@@ -166,10 +209,59 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
           ctx.restore();
       }
 
-      // 4. BOSS 2: BLACK HOLE
+      // 4. BOSS 2: BLACK HOLE - UPDATED VISUAL RANGE
       if (e.type === 'BOSS_2' && e.attackPattern === 'BLACK_HOLE' && (e.attackState === 'WARN' || e.attackState === 'PULLING')) {
+          const PULL_RADIUS = 600; // Matches logic/player.ts (Reduced from 1200)
+          
           ctx.save();
           ctx.translate(e.x, e.y);
+          
+          // --- DRAW HUGE PURPLE AREA ---
+          ctx.beginPath();
+          ctx.arc(0, 0, PULL_RADIUS, 0, Math.PI * 2);
+          
+          if (e.attackState === 'WARN') {
+               // Warning: Faint dashed line
+               ctx.fillStyle = 'rgba(76, 29, 149, 0.05)'; 
+               ctx.fill();
+               ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)'; 
+               ctx.lineWidth = 2;
+               ctx.setLineDash([20, 20]);
+               ctx.stroke();
+          } else {
+               // Pulling: Pulsing area + Inward Ripples
+               const pulse = 0.1 + Math.sin(gameTime * 5) * 0.05;
+               ctx.fillStyle = `rgba(76, 29, 149, ${0.1 + pulse})`; 
+               ctx.fill();
+
+               ctx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
+               ctx.lineWidth = 4;
+               ctx.setLineDash([]);
+               ctx.stroke();
+
+               // Suction Animation (Ripples moving inwards)
+               const speed = 400;
+               const offset = (gameTime * speed) % PULL_RADIUS;
+               const rippleR = PULL_RADIUS - offset;
+               if (rippleR > 0) {
+                  ctx.beginPath();
+                  ctx.arc(0, 0, rippleR, 0, Math.PI * 2);
+                  ctx.strokeStyle = `rgba(167, 139, 250, ${rippleR/PULL_RADIUS * 0.5})`; // Fade near center
+                  ctx.lineWidth = 2;
+                  ctx.stroke();
+               }
+               // Second ripple
+               const rippleR2 = (rippleR + PULL_RADIUS/2) % PULL_RADIUS;
+               if (rippleR2 > 0) {
+                  ctx.beginPath();
+                  ctx.arc(0, 0, rippleR2, 0, Math.PI * 2);
+                  ctx.strokeStyle = `rgba(167, 139, 250, ${rippleR2/PULL_RADIUS * 0.5})`;
+                  ctx.lineWidth = 2;
+                  ctx.stroke();
+               }
+          }
+
+          // --- DRAW SWIRLING CENTER (Existing Logic) ---
           ctx.rotate(gameTime * 2);
           const size = e.attackState === 'PULLING' ? 300 : 150;
           
@@ -179,10 +271,11 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
               ctx.moveTo(size, 0);
               ctx.quadraticCurveTo(size/2, 50, 0, 0);
           }
-          ctx.strokeStyle = `rgba(79, 70, 229, ${e.attackState === 'PULLING' ? 0.6 : 0.3})`; // Indigo
+          ctx.strokeStyle = `rgba(79, 70, 229, ${e.attackState === 'PULLING' ? 0.8 : 0.4})`; // Indigo
           ctx.lineWidth = 2;
           ctx.stroke();
 
+          // Black hole core
           ctx.beginPath(); ctx.arc(0, 0, 60, 0, Math.PI*2);
           ctx.fillStyle = '#000'; ctx.fill();
           ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2; ctx.stroke();
@@ -235,16 +328,23 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
       if (e.type === 'ELITE' && e.attackPattern === 'STOMP' && e.attackState === 'WARN') {
           const progress = Math.min(1, (e.stateTimer || 0) / 1.2);
           ctx.save(); ctx.translate(e.x, e.y);
-          ctx.beginPath(); ctx.arc(0, 0, 150, 0, Math.PI*2); ctx.strokeStyle = 'rgba(220, 38, 38, 0.4)'; ctx.stroke();
-          ctx.beginPath(); ctx.arc(0, 0, 150 * progress, 0, Math.PI*2); ctx.fillStyle = 'rgba(220, 38, 38, 0.2)'; ctx.fill();
+          // UPSCALED VISUALS for larger Elite
+          ctx.beginPath(); ctx.arc(0, 0, 250, 0, Math.PI*2); ctx.strokeStyle = 'rgba(220, 38, 38, 0.4)'; ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, 250 * progress, 0, Math.PI*2); ctx.fillStyle = 'rgba(220, 38, 38, 0.2)'; ctx.fill();
           ctx.restore();
       }
     });
 
-    // --- ENEMY RENDERING (LAYER 2: BODIES) ---
+    // --- ENEMY RENDERING (LAYER 2: SPRITES & BODIES) ---
     enemies.forEach(e => {
       ctx.save();
       ctx.translate(e.x, e.y);
+
+      // Determine Facing Direction
+      const isLookingLeft = player.x < e.x;
+      if (isLookingLeft) {
+          ctx.scale(-1, 1);
+      }
 
       if (e.type === 'SPLITTER' || e.type === 'MINI') {
            const wobbleX = 1 + Math.sin(gameTime * 10) * 0.1;
@@ -253,42 +353,86 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
       }
 
       if (e.aiType === 'KAMIKAZE' && e.isCharging) {
-         // Violent shake effect when charging
          ctx.translate(getRandomRange(-5, 5), getRandomRange(-5, 5));
-         ctx.fillStyle = Math.floor(gameTime * 15) % 2 === 0 ? '#ef4444' : '#fff';
-      } else {
-         ctx.fillStyle = e.flashTime > 0 ? '#fff' : e.color;
       }
-      
-      if ((e.aiType === 'DASHER' || e.type === 'BOSS_3') && e.attackState === 'DASHING') ctx.fillStyle = '#fff';
 
-      // Draw Body
+      // 1. Draw Shadow
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(-e.width/2 + 6, -e.height/2 + 6, e.width, e.height); // Shadow
+      ctx.beginPath();
+      ctx.ellipse(0, e.height/2 - 5, e.width/2, e.height/6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Select Sprite Logic
+      const spriteData = SPRITES[e.type];
       
-      ctx.fillStyle = (e.flashTime > 0) ? '#fff' : e.color;
-      if (e.aiType === 'KAMIKAZE' && e.isCharging && Math.floor(gameTime * 20) % 2 === 0) ctx.fillStyle = '#ef4444';
-      
-      ctx.strokeStyle = e.borderColor;
-      ctx.lineWidth = e.aiType === 'BOSS' ? 8 : (e.type === 'ELITE' ? 6 : 4);
-      
-      ctx.fillRect(-e.width/2, -e.height/2, e.width, e.height);
-      ctx.strokeRect(-e.width/2, -e.height/2, e.width, e.height);
-      
-      // Eyes
-      ctx.fillStyle = e.aiType === 'BOSS' ? '#ef4444' : '#000';
-      const eyeSize = e.width * 0.15; const eyeOffset = e.width * 0.2;
-      
-      if (e.attackState === 'FIRING' || e.isCharging || e.attackState === 'DASHING') {
-          ctx.beginPath(); ctx.moveTo(-eyeOffset - eyeSize, -5); ctx.lineTo(-eyeOffset, 5); ctx.lineTo(-eyeOffset + eyeSize, -5); ctx.fill();
-          ctx.beginPath(); ctx.moveTo(eyeOffset - eyeSize, -5); ctx.lineTo(eyeOffset, 5); ctx.lineTo(eyeOffset + eyeSize, -5); ctx.fill();
+      // 3. Draw Sprite OR Fallback
+      if (spriteData && spriteData.status === 'LOADED') {
+          // SPRITE RENDERING
+          if (e.flashTime > 0) {
+              ctx.drawImage(spriteData.img, -e.width/2, -e.height/2, e.width, e.height);
+              ctx.globalCompositeOperation = "source-atop";
+              ctx.fillStyle = "white";
+              ctx.globalAlpha = 0.7;
+              ctx.fillRect(-e.width/2, -e.height/2, e.width, e.height);
+              ctx.globalAlpha = 1.0;
+              ctx.globalCompositeOperation = "source-over";
+          } 
+          else if (e.aiType === 'KAMIKAZE' && e.isCharging && Math.floor(gameTime * 20) % 2 === 0) {
+              ctx.drawImage(spriteData.img, -e.width/2, -e.height/2, e.width, e.height);
+              ctx.globalCompositeOperation = "source-atop";
+              ctx.fillStyle = "#ef4444";
+              ctx.globalAlpha = 0.6;
+              ctx.fillRect(-e.width/2, -e.height/2, e.width, e.height);
+              ctx.globalAlpha = 1.0;
+              ctx.globalCompositeOperation = "source-over";
+          }
+          else {
+              ctx.drawImage(spriteData.img, -e.width/2, -e.height/2, e.width, e.height);
+          }
       } else {
+          // FALLBACK RENDERING (If image missing or loading)
+          ctx.fillStyle = (e.flashTime > 0) ? '#fff' : e.color;
+          if (e.aiType === 'KAMIKAZE' && e.isCharging && Math.floor(gameTime * 20) % 2 === 0) ctx.fillStyle = '#ef4444';
+          
+          ctx.strokeStyle = e.borderColor;
+          ctx.lineWidth = e.aiType === 'BOSS' ? 8 : 4;
+          
+          ctx.fillRect(-e.width/2, -e.height/2, e.width, e.height);
+          ctx.strokeRect(-e.width/2, -e.height/2, e.width, e.height);
+          
+          // Debug Text Overlay
+          const status = spriteData ? spriteData.status : 'UNKNOWN';
+          const debugText = status === 'LOADING' 
+            ? 'LOADING...' 
+            : `MISSING:\n${spriteData?.src.split('?')[0] || 'Unknown'}`;
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px "Space Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          
+          // Text Background
+          const lines = debugText.split('\n');
+          const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+          
+          ctx.fillStyle = 'rgba(0,0,0,0.8)';
+          ctx.fillRect(-(maxW/2) - 4, -e.height/2 - (lines.length * 14) - 4, maxW + 8, (lines.length * 14) + 4);
+          
+          ctx.fillStyle = status === 'LOADING' ? '#fbbf24' : '#fca5a5';
+          lines.forEach((line, i) => {
+              ctx.fillText(line, 0, -e.height/2 - ((lines.length - 1 - i) * 14) - 6);
+          });
+          
+          // Eyes (Fallback)
+          ctx.fillStyle = e.aiType === 'BOSS' ? '#ef4444' : '#000';
+          const eyeSize = e.width * 0.15; const eyeOffset = e.width * 0.2;
           ctx.fillRect(-eyeOffset - eyeSize/2, -5, eyeSize, eyeSize);
           ctx.fillRect(eyeOffset - eyeSize/2, -5, eyeSize, eyeSize);
       }
       
       ctx.restore();
 
+      // 4. Health Bar
       if (e.hp < e.maxHP && e.aiType !== 'BOSS' && e.aiType !== 'MINI') { 
         const barW = e.width + 10; const barH = 6;
         const barX = e.x - barW/2; const barY = e.y - e.height/2 - 15;

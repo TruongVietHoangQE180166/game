@@ -4,7 +4,7 @@ import { PlayerStats } from '../types';
 export const INITIAL_STATS: PlayerStats = {
   maxHP: 500, 
   hp: 500,
-  hpRegen: 50,
+  hpRegen: 25,
 
   maxArmor: 50, 
   currentArmor: 50,

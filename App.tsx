@@ -284,8 +284,9 @@ const App: React.FC = () => {
 
     // 2. Enemy Spawning
     spawnTimerRef.current += dt;
-    // Faster spawning for more intensity
-    const spawnInterval = Math.max(0.5, 1.5 - (s.level * 0.02) - (gameTimeRef.current * 0.001));
+    // ADJUSTED: Slower spawn rate (Quality over Quantity)
+    // Starts at 3.0s, drops to minimum 1.0s over time
+    const spawnInterval = Math.max(1.0, 3.0 - (s.level * 0.05) - (gameTimeRef.current * 0.002));
     
     if (spawnTimerRef.current >= spawnInterval) {
       handleEnemySpawning(
@@ -338,7 +339,7 @@ const App: React.FC = () => {
                    newMinis.push({
                       id: Math.random().toString(),
                       x: e.x + getRandomRange(-20, 20), y: e.y + getRandomRange(-20, 20),
-                      width: 25, height: 25,
+                      width: 62, height: 62,  // Increased from 55 to 62
                       type: 'MINI', aiType: 'MINI', hp: e.maxHP * 0.3, maxHP: e.maxHP * 0.3,
                       speed: 180, damage: 10, color: '#34d399', borderColor: '#064e3b',
                       flashTime: 0, attackRange: 0, attackPattern: 'BASIC'
@@ -353,8 +354,9 @@ const App: React.FC = () => {
                 }
             }
 
-            // DROPS LOGIC
-            let xpAmount = 300; let xpSize = 12; 
+            // DROPS LOGIC - REVERTED TO ORIGINAL LEVELS
+            let xpAmount = 300; 
+            let xpSize = 12; 
             let heartChance = 0.01; let healAmount = 10;
             let armorChance = 0.005; let armorAmount = 20;
 
@@ -413,7 +415,7 @@ const App: React.FC = () => {
         dt, 
         gemsRef.current, 
         healthDropsRef.current, 
-        armorDropsRef.current,
+        armorDropsRef.current, 
         playerRef.current, 
         s, 
         setStats, 
