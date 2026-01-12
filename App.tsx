@@ -96,6 +96,9 @@ const App: React.FC = () => {
   
   const winTriggeredRef = useRef(false);
 
+  // Pool of available question indices to prevent repetition
+  const availableQuestionIndicesRef = useRef<number[]>([]);
+
   // Custom Hooks
   const keysRef = useInput();
 
@@ -169,6 +172,9 @@ const App: React.FC = () => {
     weaponTimersRef.current = { gun: 0, book: 0, lightning: 0, nova: 0 };
     zoneRef.current = { active: false, radius: 0, center: {x:0, y:0}, lastBossId: null };
     
+    // Reset Question Pool
+    availableQuestionIndicesRef.current = []; // Empty it so it refills on first use
+
     // Reset Boss Tracker
     bossTrackerRef.current = { 
       boss1Spawned: false, boss1DeathTime: null, 
@@ -223,7 +229,21 @@ const App: React.FC = () => {
 
   const handleBuffSelect = (buff: Buff) => {
     setSelectedBuff(buff);
-    const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+    
+    // --- NON-REPEATING QUESTION LOGIC ---
+    // If pool is empty, refill it with all indices [0, 1, ... length-1]
+    if (availableQuestionIndicesRef.current.length === 0) {
+        availableQuestionIndicesRef.current = QUESTIONS.map((_, index) => index);
+    }
+
+    // Pick a random index from the AVAILABLE pool
+    const poolIndex = Math.floor(Math.random() * availableQuestionIndicesRef.current.length);
+    const questionIndex = availableQuestionIndicesRef.current[poolIndex];
+
+    // Remove that index from the pool so it's not picked again until reset
+    availableQuestionIndicesRef.current.splice(poolIndex, 1);
+
+    const q = QUESTIONS[questionIndex];
     setCurrentQuestion(q);
     setGameState(GameState.QUIZ);
   };
@@ -260,8 +280,8 @@ const App: React.FC = () => {
 
     // 2. Enemy Spawning
     spawnTimerRef.current += dt;
-    // Increased interval bounds to spawn enemies less frequently
-    const spawnInterval = Math.max(1.0, 2.5 - (s.level * 0.015) - (gameTimeRef.current * 0.0004));
+    // Faster spawning for more intensity
+    const spawnInterval = Math.max(0.5, 1.5 - (s.level * 0.02) - (gameTimeRef.current * 0.001));
     
     if (spawnTimerRef.current >= spawnInterval) {
       handleEnemySpawning(

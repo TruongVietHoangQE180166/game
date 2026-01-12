@@ -43,9 +43,9 @@ export const updatePlayerMovement = (
   activeBosses.forEach(boss => {
       if (boss.type === 'BOSS_2' && boss.attackPattern === 'BLACK_HOLE' && boss.attackState === 'PULLING') {
           const dist = getDistance(player.x, player.y, boss.x, boss.y);
-          if (dist < 1000) { // Increased pull range from 900
-              // Stronger Pull: Increased base strength significantly for harder difficulty
-              const pullStrength = 600 * (1 - dist / 1000) + 150; 
+          if (dist < 1000) { // Range matches visual
+              // Stronger Pull: Increased base strength significantly for harder difficulty (800 base)
+              const pullStrength = 800 * (1 - dist / 1000) + 200; 
               const angle = Math.atan2(boss.y - player.y, boss.x - player.x);
               nextX += Math.cos(angle) * pullStrength * dt;
               nextY += Math.sin(angle) * pullStrength * dt;

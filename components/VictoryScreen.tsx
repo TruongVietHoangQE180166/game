@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { PlayerStats } from '../types';
-import { Trophy, RefreshCw, Home, Star, Crown } from 'lucide-react';
+import { Trophy, RefreshCw, Home, Star, Crown, Medal, Sparkles } from 'lucide-react';
 
 interface VictoryScreenProps {
   stats: PlayerStats;
@@ -10,95 +10,119 @@ interface VictoryScreenProps {
 }
 
 const VictoryScreen: React.FC<VictoryScreenProps> = ({ stats, onRetry, onMenu }) => {
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
-    setShowConfetti(true);
+    setAnimateIn(true);
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-yellow-500/90 backdrop-blur-sm font-sans overflow-hidden">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-yellow-400 font-sans overflow-hidden">
       
-      {/* Dynamic Background Pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-         <div className="absolute inset-0" style={{ 
-             backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 10px, transparent 10px, transparent 20px)' 
-         }}></div>
+      {/* Sunburst Background Effect */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+         <div className="w-[200vw] h-[200vw] bg-[repeating-conic-gradient(#000_0deg_10deg,transparent_10deg_20deg)] animate-[spin_20s_linear_infinite]"></div>
       </div>
 
-      {/* Confetti / Sparkles (CSS simplified) */}
-      {showConfetti && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-           {[...Array(20)].map((_, i) => (
+      {/* Confetti Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+           {[...Array(30)].map((_, i) => (
               <div key={i} className="absolute animate-bounce" style={{
                   left: `${Math.random() * 100}%`,
                   top: `-10%`,
                   animationDuration: `${2 + Math.random() * 3}s`,
                   animationDelay: `${Math.random()}s`,
-                  opacity: 0.6
               }}>
-                  <Star size={Math.random() * 30 + 10} fill={Math.random() > 0.5 ? 'white' : 'black'} className="animate-spin" />
+                  <div className={`w-3 h-3 border-2 border-black transform rotate-45 ${Math.random() > 0.5 ? 'bg-red-500' : 'bg-blue-500'}`}></div>
               </div>
            ))}
-        </div>
-      )}
+      </div>
 
-      <div className="relative w-full max-w-4xl p-4 animate-pop">
-        {/* Main Card */}
-        <div className="bg-white border-[8px] border-black neo-shadow p-8 md:p-12 relative flex flex-col items-center">
+      <div className={`relative w-full max-w-4xl p-4 transition-all duration-700 ${animateIn ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+        
+        {/* Main Card Container */}
+        <div className="bg-white border-[8px] border-black shadow-[20px_20px_0_0_#000] p-0 relative flex flex-col items-center">
           
-          {/* Top Badge */}
-          <div className="absolute -top-12 bg-black text-yellow-400 p-6 rounded-full border-8 border-white neo-shadow-sm transform rotate-12">
-             <Crown size={64} strokeWidth={2} fill="currentColor" />
-          </div>
-
-          <div className="mt-8 text-center mb-8">
-            <h2 className="text-xl font-black text-gray-500 uppercase tracking-[0.5em] mb-2">SỨ MỆNH HOÀN THÀNH</h2>
-            <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none text-black drop-shadow-[4px_4px_0_rgba(234,179,8,1)]">
-              CHIẾN THẮNG
-            </h1>
-            <p className="font-mono font-bold text-lg mt-4 bg-yellow-400 inline-block px-4 py-1 border-2 border-black transform -rotate-1">
-              BẠN ĐÃ BẢO VỆ ĐƯỢC TƯ TƯỞNG!
-            </p>
-          </div>
-
-          {/* Stats Showcase */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-             <div className="bg-black text-white p-4 border-4 border-black text-center flex flex-col items-center justify-center">
-                <Trophy className="text-yellow-400 mb-2" size={32} />
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Kẻ Địch Đã Diệt</div>
-                <div className="text-4xl font-black">{stats.kills}</div>
-             </div>
-             
-             <div className="bg-white text-black p-4 border-4 border-black text-center flex flex-col items-center justify-center neo-shadow-sm">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">Cấp Độ Cuối</div>
-                <div className="text-5xl font-black">{stats.level}</div>
-             </div>
-
-             <div className="bg-yellow-400 text-black p-4 border-4 border-black text-center flex flex-col items-center justify-center">
-                 <div className="text-xs font-bold text-black/60 uppercase tracking-widest">Danh Hiệu</div>
-                 <div className="text-xl font-black uppercase italic leading-tight">
-                    {stats.kills > 2000 ? "THẦN CHIẾN TRANH" : stats.level > 30 ? "BẬC THẦY" : "CHIẾN BINH"}
+          {/* Header Badge - Floating */}
+          <div className="absolute -top-16 z-20 animate-bounce">
+              <div className="bg-yellow-300 text-black p-6 rounded-full border-8 border-black shadow-[8px_8px_0_0_#000] relative">
+                 <Crown size={64} strokeWidth={2.5} fill="white" />
+                 <div className="absolute top-0 right-0 animate-ping">
+                    <Sparkles size={32} className="text-yellow-600" />
                  </div>
-             </div>
+              </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col md:flex-row gap-4 w-full">
-            <button 
-              onClick={onRetry}
-              className="flex-1 bg-black text-white py-4 px-6 border-4 border-black font-black text-lg uppercase flex items-center justify-center gap-3 hover:-translate-y-1 hover:bg-gray-800 transition-all shadow-[8px_8px_0_0_#ca8a04]"
-            >
-              <RefreshCw size={24} strokeWidth={3} /> Chơi Lại
-            </button>
-            <button 
-              onClick={onMenu}
-              className="flex-1 bg-white text-black py-4 px-6 border-4 border-black font-black text-lg uppercase flex items-center justify-center gap-3 hover:-translate-y-1 hover:bg-gray-50 transition-all hover:shadow-lg"
-            >
-               <Home size={24} strokeWidth={3} /> Về Menu
-            </button>
+          {/* Decorative Corners */}
+          <div className="absolute top-0 left-0 w-16 h-16 border-t-[16px] border-l-[16px] border-black"></div>
+          <div className="absolute top-0 right-0 w-16 h-16 border-t-[16px] border-r-[16px] border-black"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[16px] border-l-[16px] border-black"></div>
+          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[16px] border-r-[16px] border-black"></div>
+
+          <div className="pt-24 pb-12 px-8 w-full flex flex-col items-center text-center">
+
+            {/* Title Section */}
+            <div className="mb-10 transform -rotate-2">
+              <h2 className="text-2xl font-black bg-black text-white inline-block px-4 py-1 uppercase tracking-[0.3em] mb-2 border-2 border-transparent">
+                  Sứ Mệnh Hoàn Thành
+              </h2>
+              <h1 className="text-7xl md:text-9xl font-black italic uppercase tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-yellow-400 to-orange-600 drop-shadow-[6px_6px_0_#000]"
+                  style={{ WebkitTextStroke: '3px black' }}>
+                CHIẾN<br/>THẮNG
+              </h1>
+            </div>
+
+            {/* Stats Showcase - Brutalist Grid */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+               {/* Stat 1: Kills */}
+               <div className="bg-cyan-300 border-4 border-black p-4 shadow-[8px_8px_0_0_#000] group hover:-translate-y-2 transition-transform duration-300">
+                  <div className="flex justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <Trophy size={40} strokeWidth={2} />
+                  </div>
+                  <div className="text-5xl font-black text-black mb-1">{stats.kills}</div>
+                  <div className="bg-black text-white font-mono font-bold text-xs py-1 uppercase tracking-widest">Kẻ Địch Đã Diệt</div>
+               </div>
+               
+               {/* Stat 2: Level */}
+               <div className="bg-purple-400 border-4 border-black p-4 shadow-[8px_8px_0_0_#000] group hover:-translate-y-2 transition-transform duration-300 md:-translate-y-6">
+                  <div className="flex justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <Medal size={40} strokeWidth={2} />
+                  </div>
+                  <div className="text-5xl font-black text-black mb-1">{stats.level}</div>
+                  <div className="bg-black text-white font-mono font-bold text-xs py-1 uppercase tracking-widest">Cấp Độ Cuối</div>
+               </div>
+
+               {/* Stat 3: Rank */}
+               <div className="bg-green-400 border-4 border-black p-4 shadow-[8px_8px_0_0_#000] group hover:-translate-y-2 transition-transform duration-300">
+                   <div className="flex justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <Star size={40} strokeWidth={2} fill="black" />
+                   </div>
+                   <div className="text-2xl font-black text-black mb-1 uppercase leading-8 pt-2">
+                      {stats.kills > 2000 ? "THẦN CHIẾN" : stats.level > 30 ? "HUYỀN THOẠI" : "CHIẾN BINH"}
+                   </div>
+                   <div className="bg-black text-white font-mono font-bold text-xs py-1 uppercase tracking-widest mt-1">Danh Hiệu</div>
+               </div>
+            </div>
+
+            {/* Buttons Area */}
+            <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
+              <button 
+                onClick={onRetry}
+                className="flex-1 bg-black text-white py-5 px-6 border-4 border-black font-black text-xl uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-red-600 hover:text-black hover:shadow-[8px_8px_0_0_#000] hover:-translate-y-1 transition-all"
+              >
+                <RefreshCw size={24} strokeWidth={3} className="animate-spin-slow" /> 
+                Chơi Lại
+              </button>
+              <button 
+                onClick={onMenu}
+                className="flex-1 bg-white text-black py-5 px-6 border-4 border-black font-black text-xl uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-gray-200 hover:shadow-[8px_8px_0_0_#000] hover:-translate-y-1 transition-all"
+              >
+                 <Home size={24} strokeWidth={3} /> 
+                 Menu Chính
+              </button>
+            </div>
+            
           </div>
-          
         </div>
       </div>
     </div>

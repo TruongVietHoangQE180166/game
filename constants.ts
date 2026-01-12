@@ -951,52 +951,251 @@ export const BUFFS: Buff[] = [
 ];
 
 export const QUESTIONS: Question[] = [
+  // PHẦN I: CƠ SỞ HÌNH THÀNH
   {
     id: 1,
-    topic: 'Tư tưởng Hồ Chí Minh',
+    topic: 'Cơ sở khách quan',
     difficulty: 1,
-    question: 'Hồ Chí Minh sinh ngày tháng năm nào?',
-    options: ['19/05/1890', '19/05/1891', '02/09/1945', '19/05/1969'],
+    question: 'Bối cảnh lịch sử Việt Nam cuối thế kỷ XIX đầu thế kỷ XX chuyển biến như thế nào?',
+    options: ['Từ phong kiến độc lập thành thuộc địa nửa phong kiến', 'Từ thuộc địa thành nước tư bản chủ nghĩa', 'Từ phong kiến thành nước độc lập', 'Từ thuộc địa thành nước xã hội chủ nghĩa'],
     correctIndex: 0
   },
   {
     id: 2,
-    topic: 'Tư tưởng Hồ Chí Minh',
-    difficulty: 1,
-    question: 'Bản Tuyên ngôn độc lập được đọc tại đâu?',
-    options: ['Quảng trường Ba Đình', 'Dinh Độc Lập', 'Bến Nhà Rồng', 'Pác Bó'],
-    correctIndex: 0
+    topic: 'Cơ sở khách quan',
+    difficulty: 2,
+    question: 'Sự thất bại của các phong trào yêu nước theo khuynh hướng phong kiến, tư sản chứng tỏ điều gì?',
+    options: ['Quân đội ta còn yếu', 'Ý thức hệ tư tưởng phong kiến đã lỗi thời', 'Nhân dân không ủng hộ cách mạng', 'Thiếu sự lãnh đạo của Đảng'],
+    correctIndex: 1
   },
   {
     id: 3,
-    topic: 'Đạo đức',
+    topic: 'Cơ sở khách quan',
     difficulty: 2,
-    question: '"Không có gì quý hơn độc lập tự do" là câu nói của ai?',
-    options: ['Trần Hưng Đạo', 'Võ Nguyên Giáp', 'Hồ Chí Minh', 'Lê Lợi'],
+    question: 'Hậu quả của việc thất bại các phong trào yêu nước cuối thế kỷ XIX đầu thế kỷ XX là gì?',
+    options: ['Cách mạng bị đàn áp', 'Mất quyền tự chủ', 'Cách mạng Việt Nam lâm vào khủng hoảng về con đường cứu nước', 'Nhân dân lầm than'],
     correctIndex: 2
   },
   {
     id: 4,
-    topic: 'Cách mạng',
-    difficulty: 2,
-    question: 'Bác Hồ ra đi tìm đường cứu nước vào năm nào?',
-    options: ['1911', '1920', '1930', '1945'],
-    correctIndex: 0
+    topic: 'Cơ sở khách quan',
+    difficulty: 1,
+    question: 'Trong bối cảnh quốc tế, chủ nghĩa tư bản chuyển từ tự do cạnh tranh sang giai đoạn nào?',
+    options: ['Hợp tác quốc tế', 'Độc quyền', 'Toàn cầu hóa', 'Kinh tế thị trường'],
+    correctIndex: 1
   },
   {
     id: 5,
-    topic: 'Văn hóa',
-    difficulty: 3,
-    question: 'Tên gọi khác của Bác Hồ khi ở Pháp là gì?',
-    options: ['Nguyễn Ái Quốc', 'Nguyễn Tất Thành', 'Lý Tự Trọng', 'Văn Ba'],
-    correctIndex: 0
+    topic: 'Cơ sở khách quan',
+    difficulty: 1,
+    question: 'Cách mạng tháng Mười Nga năm 1917 thành công có ý nghĩa gì?',
+    options: ['Kết thúc chiến tranh thế giới', 'Mở ra một thời kỳ mới trong lịch sử loài người', 'Xóa bỏ chủ nghĩa tư bản', 'Thành lập Quốc tế Cộng sản'],
+    correctIndex: 1
   },
   {
     id: 6,
-    topic: 'Lịch sử',
+    topic: 'Cơ sở khách quan',
+    difficulty: 1,
+    question: 'Quốc tế Cộng sản ra đời vào thời gian nào?',
+    options: ['Tháng 3/1917', 'Tháng 3/1911', 'Tháng 3/1919', 'Tháng 12/1920'],
+    correctIndex: 2
+  },
+  {
+    id: 7,
+    topic: 'Cơ sở khách quan',
+    difficulty: 2,
+    question: 'Đâu là một trong những tiền đề tư tưởng lý luận của Tư tưởng Hồ Chí Minh?',
+    options: ['Văn hóa phương Đông', 'Khoa học kỹ thuật', 'Giá trị truyền thống dân tộc', 'Kinh nghiệm đấu tranh vũ trang'],
+    correctIndex: 2
+  },
+  {
+    id: 8,
+    topic: 'Cơ sở chủ quan',
+    difficulty: 2,
+    question: 'Phẩm chất nào thuộc về cơ sở chủ quan của Hồ Chí Minh?',
+    options: ['Truyền thống gia đình', 'Có hoài bão lớn, bản lĩnh kiên định, giàu lòng nhân ái', 'Sự giúp đỡ của quốc tế', 'Hoàn cảnh lịch sử thế giới'],
+    correctIndex: 1
+  },
+  {
+    id: 9,
+    topic: 'Cơ sở chủ quan',
+    difficulty: 2,
+    question: 'Năng lực hoạt động thực tiễn của Hồ Chí Minh thể hiện qua điểm nào?',
+    options: ['Sự giúp đỡ của bạn bè quốc tế', 'Tư duy độc lập, tự chủ, sáng tạo', 'Kế thừa tư tưởng phong kiến', 'Tuân thủ các quy tắc cũ'],
+    correctIndex: 1
+  },
+
+  // PHẦN II: QUÁ TRÌNH HÌNH THÀNH
+  {
+    id: 10,
+    topic: 'Quá trình hình thành',
+    difficulty: 1,
+    question: 'Giai đoạn trước năm 1911 là giai đoạn nào trong quá trình hình thành tư tưởng?',
+    options: ['Tìm thấy con đường cứu nước', 'Hình thành tư tưởng yêu nước và chí hướng cứu nước', 'Vượt qua thử thách', 'Hoàn thiện tư tưởng'],
+    correctIndex: 1
+  },
+  {
+    id: 11,
+    topic: 'Quá trình hình thành',
     difficulty: 3,
-    question: 'Chiến thắng Điện Biên Phủ diễn ra vào năm nào?',
-    options: ['1954', '1945', '1975', '1968'],
+    question: 'Giai đoạn nào quyết định sự thay đổi căn bản tư tưởng Hồ Chí Minh về con đường cách mạng?',
+    options: ['Trước 1911', '1911 - 1920', '1920 - 1930', '1930 - 1945'],
+    correctIndex: 1
+  },
+  {
+    id: 12,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Trong giai đoạn 1911 - 1920, Người đã đi thực tế tại các nước nào để tìm hiểu thời cuộc?',
+    options: ['Anh, Pháp, Mỹ', 'Anh, Nga, Trung Quốc', 'Pháp, Đức, Nga', 'Anh, Pháp, Nhật'],
+    correctIndex: 0
+  },
+  {
+    id: 13,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Nguyễn Ái Quốc gia nhập Đảng xã hội Pháp vào năm nào?',
+    options: ['1911', '1917', '1919', '1920'],
+    correctIndex: 2
+  },
+  {
+    id: 14,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Ngày 18/6/1919, Người gửi bản yêu sách của nhân dân An Nam tới đâu?',
+    options: ['Quốc hội Pháp', 'Liên Hợp Quốc', 'Hội nghị Vecxay', 'Quốc tế Cộng sản'],
+    correctIndex: 2
+  },
+  {
+    id: 15,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Vào tháng 7/1920, Hồ Chí Minh đã đọc tài liệu quan trọng nào của Lênin?',
+    options: ['Tuyên ngôn Đảng cộng sản', 'Sơ thảo luận cương về vấn đề dân tộc thuộc địa', 'Làm gì?', 'Nhà nước và cách mạng'],
+    correctIndex: 1
+  },
+  {
+    id: 16,
+    topic: 'Quá trình hình thành',
+    difficulty: 3,
+    question: 'Con đường giải phóng dân tộc được Hồ Chí Minh xác định sau khi đọc luận cương Lênin là?',
+    options: ['Cách mạng tư sản', 'Cách mạng phong kiến', 'Cách mạng vô sản', 'Cách mạng ôn hòa'],
+    correctIndex: 2
+  },
+  {
+    id: 17,
+    topic: 'Quá trình hình thành',
+    difficulty: 3,
+    question: 'Sự kiện ngày 30/12/1920 đánh dấu Hồ Chí Minh trở thành:',
+    options: ['Người lãnh đạo Đảng xã hội', 'Người cộng sản Việt Nam đầu tiên', 'Chủ tịch nước', 'Tổng bí thư'],
+    correctIndex: 1
+  },
+  {
+    id: 18,
+    topic: 'Quá trình hình thành',
+    difficulty: 3,
+    question: 'Biến đổi về chất trong thế giới quan của Hồ Chí Minh giai đoạn 1911-1920 là gì?',
+    options: ['Từ nông dân thành công nhân', 'Từ chủ nghĩa dân tộc đến chủ nghĩa Mác-Lênin', 'Từ chiến sĩ cộng sản đến nhà yêu nước', 'Từ tư duy phong kiến sang tư duy tư sản'],
+    correctIndex: 1
+  },
+  {
+    id: 19,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Giai đoạn 1920 - 1930 trong quá trình hình thành tư tưởng là giai đoạn nào?',
+    options: ['Hình thành cơ bản tư tưởng về cách mạng Việt Nam', 'Vượt qua thử thách', 'Khảo nghiệm thực tế', 'Tiếp tục phát triển'],
+    correctIndex: 0
+  },
+  {
+    id: 20,
+    topic: 'Quá trình hình thành',
+    difficulty: 1,
+    question: 'Giai đoạn 1930 - 1945 mang đặc điểm gì nổi bật?',
+    options: ['Tìm thấy con đường cứu nước', 'Hình thành tư tưởng yêu nước', 'Vượt qua thử thách, kiên trì giữ vững lập trường cách mạng', 'Hoàn thiện tư tưởng'],
+    correctIndex: 2
+  },
+  {
+    id: 21,
+    topic: 'Quá trình hình thành',
+    difficulty: 1,
+    question: 'Giai đoạn 1945 - 1969 được xác định là giai đoạn:',
+    options: ['Hình thành cơ bản', 'Tiếp tục phát triển, hoàn thiện', 'Khảo nghiệm con đường cứu nước', 'Thử thách lập trường'],
+    correctIndex: 1
+  },
+
+  // PHẦN III: GIÁ TRỊ TƯ TƯỞNG
+  {
+    id: 22,
+    topic: 'Giá trị tư tưởng',
+    difficulty: 1,
+    question: 'Đối với Việt Nam, Tư tưởng Hồ Chí Minh được coi là:',
+    options: ['Một lý thuyết tạm thời', 'Tài sản tinh thần vô giá của dân tộc Việt Nam', 'Kinh nghiệm từ nước ngoài', 'Văn hóa cổ truyền'],
+    correctIndex: 1
+  },
+  {
+    id: 23,
+    topic: 'Giá trị tư tưởng',
+    difficulty: 2,
+    question: 'Tư tưởng Hồ Chí Minh đóng vai trò gì đối với hành động của Cách mạng Việt Nam?',
+    options: ['Là công cụ hỗ trợ', 'Nền tảng tư tưởng và kim chỉ nam', 'Phương án dự phòng', 'Nội dung tham khảo'],
+    correctIndex: 1
+  },
+  {
+    id: 24,
+    topic: 'Giá trị tư tưởng',
+    difficulty: 2,
+    question: 'Đối với sự phát triển tiến bộ nhân loại, Tư tưởng Hồ Chí Minh phản ánh điều gì?',
+    options: ['Khát vọng thời đại', 'Quy luật tự nhiên', 'Lịch sử thế giới cổ đại', 'Xu hướng kinh tế'],
+    correctIndex: 0
+  },
+  {
+    id: 25,
+    topic: 'Giá trị tư tưởng',
+    difficulty: 2,
+    question: 'Tư tưởng Hồ Chí Minh góp phần gì cho nhân loại?',
+    options: ['Phát triển công nghiệp', 'Tìm ra các giải pháp đấu tranh giải phóng loài người', 'Xây dựng bản đồ thế giới', 'Mở rộng thị trường'],
+    correctIndex: 1
+  },
+
+  // CHI TIẾT BỔ SUNG TỪ VĂN BẢN
+  {
+    id: 26,
+    topic: 'Cơ sở chủ quan',
+    difficulty: 3,
+    question: 'Yếu tố nào giúp Hồ Chí Minh chiếm lĩnh đỉnh cao tri thức nhân loại?',
+    options: ['Sự may mắn', 'Được học tập ở nước ngoài', 'Sự khổ công học tập', 'Điều kiện kinh tế gia đình'],
+    correctIndex: 2
+  },
+  {
+    id: 27,
+    topic: 'Cơ sở khách quan',
+    difficulty: 3,
+    question: 'Tiền đề tư tưởng lý luận nào được nhắc đến cuối cùng trong danh sách?',
+    options: ['Giá trị truyền thống dân tộc', 'Tinh hoa văn hóa nhân loại', 'Chủ nghĩa Mác-Lênin', 'Tư tưởng tư sản'],
+    correctIndex: 2
+  },
+  {
+    id: 28,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Tại đại hội thứ XVIII của Đảng xã hội Pháp, Hồ Chí Minh đã làm gì?',
+    options: ['Đọc Tuyên ngôn độc lập', 'Biểu quyết tán thành thành lập Đảng cộng sản Pháp', 'Viết bản yêu sách', 'Thành lập Quốc tế III'],
+    correctIndex: 1
+  },
+  {
+    id: 29,
+    topic: 'Quá trình hình thành',
+    difficulty: 2,
+    question: 'Sự chuyển đổi từ "chiến sĩ chống thực dân trở thành chiến sĩ cộng sản" diễn ra trong giai đoạn nào?',
+    options: ['Trước 1911', '1911 - 1920', '1920 - 1930', '1945 - 1969'],
+    correctIndex: 1
+  },
+  {
+    id: 30,
+    topic: 'Giá trị tư tưởng',
+    difficulty: 1,
+    question: 'Tư tưởng Hồ Chí Minh soi sáng con đường nào của dân tộc?',
+    options: ['Giải phóng và phát triển', 'Công nghiệp hóa', 'Mở mang bờ cõi', 'Hợp tác quốc tế'],
     correctIndex: 0
   }
 ];

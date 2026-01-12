@@ -42,13 +42,13 @@ export const calculatePlayerDamage = (
 
 // --- WEIGHTED RARITY LOGIC ---
 const RARITY_WEIGHTS: Record<Rarity, number> = {
-    [Rarity.COMMON]: 25,      // 25% - Giảm mạnh để nhường chỗ cho đồ xịn
-    [Rarity.UNCOMMON]: 25,    // 25%
-    [Rarity.RARE]: 25,        // 25% - Rất phổ biến
-    [Rarity.EPIC]: 15,        // 15% - Dễ tìm hơn nhiều
-    [Rarity.LEGENDARY]: 8,    // 8% - Tỷ lệ cao (gần 1/10 lần roll)
-    [Rarity.MYTHIC]: 1.5,     // 1.5% - Đủ để hi vọng
-    [Rarity.GODLY]: 0.5       // 0.5% - Vẫn là cực phẩm nhưng dễ ra hơn
+    [Rarity.COMMON]: 45,      // Tăng rate đồ thường (cơ bản)
+    [Rarity.UNCOMMON]: 30,    // Tăng rate đồ khá
+    [Rarity.RARE]: 15,        // Giảm rate đồ hiếm xuống mức cân bằng
+    [Rarity.EPIC]: 7,         // Epic giờ khó kiếm hơn
+    [Rarity.LEGENDARY]: 2.5,  // Huyền thoại thực sự hiếm (2.5%)
+    [Rarity.MYTHIC]: 0.4,     // Cực khó ra
+    [Rarity.GODLY]: 0.1       // Jackpot (0.1%)
 };
 
 const getRandomRarity = (): Rarity => {

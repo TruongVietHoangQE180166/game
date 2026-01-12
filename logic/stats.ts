@@ -2,19 +2,19 @@
 import { PlayerStats } from '../types';
 
 export const INITIAL_STATS: PlayerStats = {
-  maxHP: 50000, 
-  hp: 50000,
-  hpRegen: 500,
+  maxHP: 500, 
+  hp: 500,
+  hpRegen: 50,
 
-  maxArmor: 200, 
-  currentArmor: 200,
-  armor: 0, 
+  maxArmor: 50, 
+  currentArmor: 50,
+  armor: 1, 
   armorRegen: 1,
 
   moveSpeed: 300,
 
   // --- GUN STATS ---
-  gunDamageMult: 20.0, 
+  gunDamageMult: 1.0, 
   gunCooldownMult: 1.0, 
   gunAmount: 1,
   gunPierce: 0,
@@ -39,6 +39,6 @@ export const INITIAL_STATS: PlayerStats = {
   novaCooldownMult: 1.0,
   novaArea: 1.0,
 
-  magnetRange: 150,
+  magnetRange: 200,
   level: 1, exp: 0, expToNext: 100, kills: 0
 };

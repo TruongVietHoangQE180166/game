@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { PlayerStats } from '../types';
-import { Skull, RefreshCw, Home } from 'lucide-react';
+import { Skull, RefreshCw, Home, AlertTriangle, ZapOff } from 'lucide-react';
 
 interface GameOverScreenProps {
   stats: PlayerStats;
@@ -10,77 +10,103 @@ interface GameOverScreenProps {
 }
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ stats, onRetry, onMenu }) => {
-  const [stampVisible, setStampVisible] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    // Delay stamp effect for drama
-    setTimeout(() => setStampVisible(true), 500);
+    setTimeout(() => setShowContent(true), 100);
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm font-sans overflow-hidden">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-600 font-sans overflow-hidden">
       
-      {/* Background Noise */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+      {/* Background Patterns - Aggressive */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none" 
+           style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 20px, transparent 20px, transparent 40px)' }}>
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80 pointer-events-none"></div>
 
-      <div className="relative w-full max-w-3xl p-4">
-        {/* Main Card */}
-        <div className="bg-[#f3f4f6] border-[6px] border-[#1a1a1a] neo-shadow p-8 md:p-12 relative transform rotate-1">
+      <div className={`relative w-full max-w-2xl p-4 transition-all duration-500 transform ${showContent ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        
+        {/* Main Container - Tilted & Shadowed */}
+        <div className="bg-[#1a1a1a] border-[8px] border-black shadow-[16px_16px_0_0_#000] p-0 relative transform -rotate-2 overflow-hidden">
           
-          {/* Decorative Corner Screws */}
-          <div className="absolute top-4 left-4 text-2xl text-gray-400">x</div>
-          <div className="absolute top-4 right-4 text-2xl text-gray-400">x</div>
-          <div className="absolute bottom-4 left-4 text-2xl text-gray-400">x</div>
-          <div className="absolute bottom-4 right-4 text-2xl text-gray-400">x</div>
-
-          {/* STAMP EFFECT */}
-          <div className={`
-             absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-             border-[8px] border-red-600 text-red-600 px-8 py-4 
-             text-6xl md:text-8xl font-black uppercase tracking-tighter 
-             transform -rotate-12 z-20 pointer-events-none mix-blend-multiply
-             transition-all duration-300 ease-in
-             ${stampVisible ? 'opacity-80 scale-100' : 'opacity-0 scale-150'}
-          `}>
-             THẤT BẠI
+          {/* Hazard Tape Top */}
+          <div className="h-4 w-full bg-yellow-400 border-b-4 border-black" 
+               style={{ backgroundImage: 'repeating-linear-gradient(-45deg, #000 0, #000 10px, #facc15 10px, #facc15 20px)' }}>
           </div>
 
-          <div className="text-center mb-10 relative z-10">
-            <Skull className="w-16 h-16 mx-auto mb-4 text-[#1a1a1a]" strokeWidth={2.5} />
-            <h1 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">
-              NHIỆM VỤ<br/>KẾT THÚC
-            </h1>
-            <div className="h-1 w-24 bg-black mx-auto mt-4"></div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-10 relative z-10">
-             <div className="bg-white border-4 border-black p-4 text-center hover:bg-yellow-50 transition-colors">
-                <div className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Kẻ Địch Đã Diệt</div>
-                <div className="text-4xl md:text-5xl font-black text-red-600">{stats.kills}</div>
+          <div className="p-8 md:p-10 flex flex-col items-center text-center relative z-10">
+             
+             {/* Skull Icon with Glitch Effect */}
+             <div className="relative mb-6 group">
+                <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-50 group-hover:opacity-80 transition-opacity animate-pulse"></div>
+                <div className="bg-black text-white p-4 border-4 border-white shadow-[4px_4px_0_0_#ef4444] transform group-hover:rotate-12 transition-transform duration-300">
+                    <Skull size={64} strokeWidth={2.5} />
+                </div>
+                <div className="absolute -top-2 -right-2 text-yellow-400 animate-bounce">
+                    <ZapOff size={32} fill="currentColor" />
+                </div>
              </div>
-             <div className="bg-white border-4 border-black p-4 text-center hover:bg-blue-50 transition-colors">
-                <div className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Cấp Độ Đạt Được</div>
-                <div className="text-4xl md:text-5xl font-black text-black">{stats.level}</div>
-             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex flex-col md:flex-row gap-4 relative z-10">
-            <button 
-              onClick={onRetry}
-              className="flex-1 bg-black text-white py-4 px-6 border-4 border-black font-black text-lg uppercase flex items-center justify-center gap-3 hover:-translate-y-1 hover:shadow-[4px_4px_0_0_rgba(255,255,255,1)] transition-all"
-            >
-              <RefreshCw size={24} strokeWidth={3} /> Thử Lại
-            </button>
-            <button 
-              onClick={onMenu}
-              className="flex-1 bg-white text-black py-4 px-6 border-4 border-black font-black text-lg uppercase flex items-center justify-center gap-3 hover:-translate-y-1 hover:bg-gray-100 transition-all"
-            >
-               <Home size={24} strokeWidth={3} /> Về Menu
-            </button>
+             {/* Title */}
+             <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none mb-2 text-white drop-shadow-[4px_4px_0_#ef4444]">
+               THẤT BẠI
+             </h1>
+             <div className="bg-red-600 text-black px-4 py-1 font-mono font-bold text-sm uppercase border-2 border-black transform rotate-2 mb-8">
+               Mission Failed • System Halted
+             </div>
+
+             {/* Stats Grid - Colorful Cards */}
+             <div className="grid grid-cols-2 gap-4 w-full mb-8">
+                {/* Kills Card */}
+                <div className="bg-blue-400 border-4 border-black p-3 shadow-[4px_4px_0_0_#000] hover:-translate-y-1 transition-transform">
+                   <div className="flex justify-between items-start mb-1">
+                      <Skull size={20} />
+                      <span className="font-black text-2xl">{stats.kills}</span>
+                   </div>
+                   <div className="text-[10px] font-bold uppercase text-left border-t-2 border-black pt-1 mt-1">
+                      Kẻ Địch Đã Diệt
+                   </div>
+                </div>
+
+                {/* Level Card */}
+                <div className="bg-pink-400 border-4 border-black p-3 shadow-[4px_4px_0_0_#000] hover:-translate-y-1 transition-transform">
+                   <div className="flex justify-between items-start mb-1">
+                      <AlertTriangle size={20} />
+                      <span className="font-black text-2xl">LV.{stats.level}</span>
+                   </div>
+                   <div className="text-[10px] font-bold uppercase text-left border-t-2 border-black pt-1 mt-1">
+                      Cấp Độ Đạt Được
+                   </div>
+                </div>
+             </div>
+
+             {/* Action Buttons - Massive & High Contrast */}
+             <div className="flex flex-col gap-3 w-full">
+                <button 
+                  onClick={onRetry}
+                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-black border-4 border-black py-4 px-6 font-black text-xl uppercase tracking-widest shadow-[6px_6px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3 group"
+                >
+                  <RefreshCw size={24} strokeWidth={3} className="group-hover:rotate-180 transition-transform duration-500" />
+                  THỬ LẠI NGAY
+                </button>
+                
+                <button 
+                  onClick={onMenu}
+                  className="w-full bg-white hover:bg-gray-200 text-black border-4 border-black py-3 px-6 font-bold text-lg uppercase tracking-widest shadow-[6px_6px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3"
+                >
+                   <Home size={20} strokeWidth={3} />
+                   Về Menu Chính
+                </button>
+             </div>
+
           </div>
           
+          {/* Hazard Tape Bottom */}
+          <div className="h-4 w-full bg-yellow-400 border-t-4 border-black" 
+               style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 10px, #facc15 10px, #facc15 20px)' }}>
+          </div>
+
         </div>
       </div>
     </div>
