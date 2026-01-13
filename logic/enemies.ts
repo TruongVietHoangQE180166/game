@@ -41,28 +41,32 @@ const createBoss = (
       
       let speed = 160; 
       let attackPattern: Enemy['attackPattern'] = 'SLAM';
-      
+      let attackRange = 0; // Default fallback for movement logic
+
       if (type === 'BOSS_1') { 
         attackPattern = 'MISSILE'; 
         color = '#1f2937';
-        hp = 45000; // Increased from 40000
+        hp = 55000; // Increased from 45000
         speed = 280;
         dmg = 80; // Fixed Damage Tier 1
+        attackRange = 400;
       } else if (type === 'BOSS_2') {
         attackPattern = 'BLACK_HOLE';
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
-        hp = 105000; // Increased from 90000
+        hp = 125000; // Increased from 105000
         speed = 300; 
         dmg = 110; // Fixed Damage Tier 2
+        attackRange = 600; // Keep distance for ranged attacks
       } else {
         // BOSS 3
         attackPattern = 'SPIRAL';
         color = '#450a0a'; 
         borderColor = '#facc15'; 
-        hp = 190000; // Increased from 160000
+        hp = 220000; // Increased from 190000
         speed = 260;
         dmg = 140; // Fixed Damage Tier 3
+        attackRange = 500;
       }
 
       // Slightly increase damage only for the Triple Boss phase (Endless challenge)
@@ -75,7 +79,7 @@ const createBoss = (
         x, y, width: size, height: size,
         type, aiType: 'BOSS', hp, maxHP: hp, speed, damage: dmg, color, borderColor,
         flashTime: 0,
-        attackRange: 0, attackPattern, attackState: 'IDLE', stateTimer: 0,
+        attackRange, attackPattern, attackState: 'IDLE', stateTimer: 0,
         burstCount: 0,
         isCharging: false,
         rotationSpeed: 0,
@@ -332,11 +336,21 @@ export const updateEnemies = (
         }
     }
 
-    // === BOSS 2: BLACK HOLE & LASER ===
+    // === BOSS 2: BLACK HOLE, LASER, & RAPID STREAM ===
     else if (e.type === 'BOSS_2') {
          if (e.attackState === 'IDLE') {
-             if (e.stateTimer > 0.2) {
-                 e.attackPattern = Math.random() > 0.4 ? 'LASER' : 'BLACK_HOLE';
+             // FIX: Boss 2 stays in IDLE to move if player is far away
+             // Only attack if < 650 range OR if chased for too long (> 3s)
+             const inRange = dist < 650;
+             const chaseTimeout = e.stateTimer > 3.0;
+
+             if (e.stateTimer > 0.2 && (inRange || chaseTimeout)) {
+                 // UPDATED PROBABILITIES for 3 skills
+                 const r = Math.random();
+                 if (r < 0.33) e.attackPattern = 'BLACK_HOLE';
+                 else if (r < 0.66) e.attackPattern = 'LASER';
+                 else e.attackPattern = 'RAPID_STREAM';
+
                  e.attackState = 'WARN'; e.stateTimer = 0;
                  e.secondaryTimer = 0;
              }
@@ -380,6 +394,32 @@ export const updateEnemies = (
              }
              if (e.stateTimer > 3.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
          }
+         // FIX: Ensure shouldMove=false only triggers if actually in attack state
+         else if (e.attackPattern === 'RAPID_STREAM' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
+             shouldMove = false;
+             if (e.attackState === 'WARN') {
+                 // Lock aim once
+                 if (e.stateTimer === 0 || !e.laserAngle) {
+                     e.laserAngle = Math.atan2(player.y - e.y, player.x - e.x);
+                 }
+                 if (e.stateTimer > 0.6) { e.attackState = 'FIRING'; e.stateTimer = 0; e.secondaryTimer = 0; }
+             }
+             else if (e.attackState === 'FIRING') {
+                 e.secondaryTimer = (e.secondaryTimer || 0) + dt;
+                 // Fire rapidly
+                 if (e.secondaryTimer > 0.08) {
+                     const spread = getRandomRange(-0.15, 0.15);
+                     const fireAngle = (e.laserAngle || 0) + spread;
+                     projectiles.push({
+                        id: Math.random().toString(), x: e.x, y: e.y, width: 20, height: 20,
+                        vx: Math.cos(fireAngle) * 550, vy: Math.sin(fireAngle) * 550,
+                        damage: e.damage, life: 3, rotation: fireAngle, type: 'ENEMY_BULLET', pierce: 0, color: '#818cf8'
+                     });
+                     e.secondaryTimer = 0;
+                 }
+                 if (e.stateTimer > 2.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
+             }
+         }
          else if (e.attackState === 'COOLDOWN') {
              if (e.stateTimer > 0.3) { e.attackState = 'IDLE'; e.stateTimer = 0; }
          }
@@ -389,16 +429,75 @@ export const updateEnemies = (
     else if (e.type === 'BOSS_3') {
         if (e.attackState === 'IDLE' && e.stateTimer > 0.5) { 
              const r = Math.random();
-             if (r < 0.33) e.attackPattern = 'SPIRAL';
-             else if (r < 0.66) e.attackPattern = 'GRID';
-             else e.attackPattern = 'DASH'; 
+             // Adjust probabilities to include ROTATING_LASERS
+             if (r < 0.25) e.attackPattern = 'SPIRAL';
+             else if (r < 0.5) e.attackPattern = 'GRID';
+             else if (r < 0.75) e.attackPattern = 'DASH';
+             else e.attackPattern = 'ROTATING_LASERS'; 
              
              e.attackState = 'WARN'; e.stateTimer = 0;
              e.secondaryTimer = 0;
              e.burstCount = 3; 
         }
 
-        if (e.attackPattern === 'SPIRAL') {
+        // FIX: Ensure shouldMove=false only triggers if actually in attack state
+        if (e.attackPattern === 'ROTATING_LASERS' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
+            shouldMove = false;
+            if (e.attackState === 'WARN') {
+                if (e.stateTimer > 1.5) { 
+                    e.attackState = 'FIRING'; 
+                    e.stateTimer = 0; 
+                    e.rotationSpeed = 0.5; // rads per second
+                    // Set initial angle (or keep existing)
+                    if (e.laserAngle === undefined) e.laserAngle = 0;
+                }
+            }
+            else if (e.attackState === 'FIRING') {
+                // Rotate
+                e.laserAngle = (e.laserAngle || 0) + (e.rotationSpeed || 0.5) * dt;
+                
+                // Check Collision for 4 beams
+                const beamLen = 1200;
+                const numBeams = 4;
+                const hitWidth = 40; // Wide beam
+
+                for (let i = 0; i < numBeams; i++) {
+                    const angle = (e.laserAngle || 0) + (i * (Math.PI * 2 / numBeams));
+                    
+                    // Line segment from Boss Center to Beam End
+                    const x2 = e.x + Math.cos(angle) * beamLen;
+                    const y2 = e.y + Math.sin(angle) * beamLen;
+                    
+                    const A = player.x - e.x; 
+                    const B = player.y - e.y; 
+                    const C = x2 - e.x; 
+                    const D = y2 - e.y;
+                    
+                    const dot = A * C + B * D; 
+                    const len_sq = C * C + D * D;
+                    
+                    let param = -1; 
+                    if (len_sq !== 0) param = dot / len_sq;
+                    
+                    let xx, yy; 
+                    if (param < 0) { xx = e.x; yy = e.y; } 
+                    else if (param > 1) { xx = x2; yy = y2; } 
+                    else { xx = e.x + param * C; yy = e.y + param * D; }
+                    
+                    const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
+                    const distToSource = getDistance(player.x, player.y, e.x, e.y);
+
+                    // Don't hit if inside the boss (too cheap) or too far
+                    if (distToLine < hitWidth && distToSource > 50 && distToSource < beamLen) { 
+                        takeDamage(15); // Continuous damage
+                    }
+                }
+
+                shakeManager.shake(2);
+                if (e.stateTimer > 6.0) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
+            }
+        }
+        else if (e.attackPattern === 'SPIRAL' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
             shouldMove = false;
             if (e.attackState === 'WARN') {
                  if (e.stateTimer > 0.8) { e.attackState = 'FIRING'; e.stateTimer = 0; }
@@ -423,7 +522,7 @@ export const updateEnemies = (
                 if (e.stateTimer > 4.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; } 
             }
         }
-        else if (e.attackPattern === 'GRID') {
+        else if (e.attackPattern === 'GRID' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
             shouldMove = false;
             if (e.attackState === 'WARN') {
                  if (e.stateTimer > 0.8) { e.attackState = 'FIRING'; e.stateTimer = 0; }
@@ -463,7 +562,7 @@ export const updateEnemies = (
                 if (e.stateTimer > 3.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
             }
         }
-        else if (e.attackPattern === 'DASH') {
+        else if (e.attackPattern === 'DASH' && (e.attackState === 'WARN' || e.attackState === 'DASHING')) {
              shouldMove = false;
              
              if (e.attackState === 'WARN') {

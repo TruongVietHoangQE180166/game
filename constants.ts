@@ -278,6 +278,23 @@ export const BUFFS: Buff[] = [
     type: 'STAT_BUFF',
     effect: (s) => ({ ...s, maxHP: s.maxHP + 80, hp: s.hp + 80, armor: s.armor + 4, moveSpeed: s.moveSpeed * 1.15 })
   },
+  // NEW MYTHIC/GODLY STAT BUFFS
+  {
+    id: 'stats_mythic_1',
+    name: 'TINH THỂ VŨ TRỤ',
+    description: '+150 Máu & +3 Hồi Máu/s & +8 Giáp',
+    rarity: Rarity.MYTHIC,
+    type: 'STAT_BUFF',
+    effect: (s) => ({ ...s, maxHP: s.maxHP + 150, hp: s.hp + 150, hpRegen: s.hpRegen + 3, armor: s.armor + 8 })
+  },
+  {
+    id: 'stats_godly_1',
+    name: 'LINH HỒN BẤT DIỆT',
+    description: '+300 Máu & +5 Hồi Máu/s & +10 Giáp & +5 Hồi Giáp/s',
+    rarity: Rarity.GODLY,
+    type: 'STAT_BUFF',
+    effect: (s) => ({ ...s, maxHP: s.maxHP + 300, hp: s.hp + 300, hpRegen: s.hpRegen + 5, armor: s.armor + 10, armorRegen: s.armorRegen + 5 })
+  },
 
   // --- GUN BUFFS ---
   {
@@ -674,6 +691,14 @@ export const BUFFS: Buff[] = [
     type: 'BOOK_BUFF',
     effect: (s) => ({ ...s, bookAmount: s.bookAmount + 3, bookArea: s.bookArea + 0.5, bookDamageMult: s.bookDamageMult + 0.4 })
   },
+  {
+    id: 'book_godly',
+    name: 'AKASHIC RECORDS',
+    description: '+4 Sách & +60% Kích thước & +60% Sát thương',
+    rarity: Rarity.GODLY,
+    type: 'BOOK_BUFF',
+    effect: (s) => ({ ...s, bookAmount: s.bookAmount + 4, bookArea: s.bookArea + 0.6, bookDamageMult: s.bookDamageMult + 0.6 })
+  },
   // --- LIGHTNING BUFFS ---
   {
     id: 'lightning_unlock',
@@ -794,6 +819,14 @@ export const BUFFS: Buff[] = [
     rarity: Rarity.LEGENDARY,
     type: 'LIGHTNING_BUFF',
     effect: (s) => ({ ...s, lightningDamageMult: s.lightningDamageMult + 0.6, lightningArea: s.lightningArea + 0.5 })
+  },
+  {
+    id: 'lightning_mythic',
+    name: 'ZEUS WRATH',
+    description: '+4 Sét & +50% Sát thương & +50% Phạm vi',
+    rarity: Rarity.MYTHIC,
+    type: 'LIGHTNING_BUFF',
+    effect: (s) => ({ ...s, lightningAmount: s.lightningAmount + 4, lightningDamageMult: s.lightningDamageMult + 0.5, lightningArea: s.lightningArea + 0.5 })
   },
   {
     id: 'lightning_godly',
@@ -939,6 +972,14 @@ export const BUFFS: Buff[] = [
     rarity: Rarity.LEGENDARY,
     type: 'NOVA_BUFF',
     effect: (s) => ({ ...s, novaDamageMult: s.novaDamageMult + 0.8, novaCooldownMult: s.novaCooldownMult * 0.75 })
+  },
+  {
+    id: 'nova_mythic',
+    name: 'SUPERNOVA',
+    description: '+100% Sát thương & +50% Phạm vi & -20% Hồi chiêu',
+    rarity: Rarity.MYTHIC,
+    type: 'NOVA_BUFF',
+    effect: (s) => ({ ...s, novaDamageMult: s.novaDamageMult + 1.0, novaArea: s.novaArea + 0.5, novaCooldownMult: s.novaCooldownMult * 0.8 })
   },
   {
     id: 'nova_godly',

@@ -4,6 +4,7 @@ export enum GameState {
   LOADING = 'LOADING', // Màn hình chờ
   PLAYING = 'PLAYING',
   LEVEL_UP = 'LEVEL_UP',
+  BOSS_REWARD = 'BOSS_REWARD', // New: Nhận thưởng khi giết Boss
   QUIZ = 'QUIZ',
   GAMEOVER = 'GAMEOVER',
   WIN = 'WIN'
@@ -127,7 +128,7 @@ export interface Enemy extends Entity {
 
   // Advanced Attack Logic
   attackRange?: number;
-  attackPattern?: 'BASIC' | 'SINGLE' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL' | 'DASH' | 'STOMP' | 'MISSILE' | 'BLACK_HOLE' | 'GRID';
+  attackPattern?: 'BASIC' | 'SINGLE' | 'BURST' | 'NOVA' | 'SLAM' | 'HOMING' | 'LASER' | 'SPIRAL' | 'DASH' | 'STOMP' | 'MISSILE' | 'BLACK_HOLE' | 'GRID' | 'ROTATING_LASERS' | 'RAPID_STREAM';
   attackState?: 'IDLE' | 'WARN' | 'FIRING' | 'COOLDOWN' | 'CHARGING' | 'DASHING' | 'PULLING'; 
   stateTimer?: number;
   burstCount?: number;

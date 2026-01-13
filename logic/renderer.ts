@@ -211,7 +211,7 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
 
       // 4. BOSS 2: BLACK HOLE - UPDATED VISUAL RANGE
       if (e.type === 'BOSS_2' && e.attackPattern === 'BLACK_HOLE' && (e.attackState === 'WARN' || e.attackState === 'PULLING')) {
-          const PULL_RADIUS = 600; // Matches logic/player.ts (Reduced from 1200)
+          const PULL_RADIUS = 550; // Matches logic/player.ts (Reduced from 600)
           
           ctx.save();
           ctx.translate(e.x, e.y);
@@ -300,6 +300,20 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
           ctx.stroke(); ctx.restore();
       }
 
+      // BOSS 2: RAPID STREAM
+      if (e.attackPattern === 'RAPID_STREAM' && e.attackState === 'WARN') {
+          const angle = e.laserAngle || 0;
+          const len = 800;
+          ctx.save(); 
+          ctx.beginPath(); ctx.moveTo(e.x, e.y); 
+          ctx.lineTo(e.x + Math.cos(angle) * len, e.y + Math.sin(angle) * len);
+          ctx.strokeStyle = 'rgba(129, 140, 248, 0.5)'; // Indigo-400
+          ctx.lineWidth = 1; 
+          ctx.setLineDash([15, 5]); 
+          ctx.stroke();
+          ctx.restore();
+      }
+
       // BOSS 3: EXECUTION DASH
       if (e.type === 'BOSS_3' && e.attackPattern === 'DASH' && e.attackState === 'WARN') {
           const tx = e.dashTarget?.x || player.x;
@@ -321,6 +335,56 @@ export const renderGame = (ctx: CanvasRenderingContext2D, state: RenderState) =>
           ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.moveTo(0, -20); ctx.lineTo(0, 20); ctx.stroke();
           ctx.beginPath(); ctx.arc(0, 0, 30 * (1-progress), 0, Math.PI*2); ctx.stroke();
           
+          ctx.restore();
+      }
+
+      // BOSS 3: ROTATING LASERS
+      if (e.type === 'BOSS_3' && e.attackPattern === 'ROTATING_LASERS' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
+          const laserLen = 1200;
+          const numBeams = 4;
+          const currentAngle = e.laserAngle || 0;
+          
+          ctx.save();
+          ctx.translate(e.x, e.y);
+          
+          for (let i = 0; i < numBeams; i++) {
+              ctx.save();
+              ctx.rotate(currentAngle + (i * (Math.PI * 2 / numBeams)));
+              
+              if (e.attackState === 'WARN') {
+                  // Warning Lines
+                  ctx.beginPath();
+                  ctx.moveTo(0, 0);
+                  ctx.lineTo(laserLen, 0);
+                  ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)'; // Yellow warning
+                  ctx.lineWidth = 2;
+                  ctx.setLineDash([20, 10]);
+                  ctx.stroke();
+              } else {
+                  // Firing Lasers
+                  const flicker = Math.random() * 0.2 + 0.8;
+                  
+                  // Outer Glow
+                  ctx.beginPath();
+                  ctx.moveTo(0, 0);
+                  ctx.lineTo(laserLen, 0);
+                  ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)'; // Red Glow
+                  ctx.lineWidth = 40 * flicker;
+                  ctx.lineCap = 'round';
+                  ctx.stroke();
+
+                  // Core Beam
+                  ctx.beginPath();
+                  ctx.moveTo(0, 0);
+                  ctx.lineTo(laserLen, 0);
+                  ctx.strokeStyle = '#fff'; // White Core
+                  ctx.lineWidth = 10 * flicker;
+                  ctx.shadowColor = '#ef4444';
+                  ctx.shadowBlur = 20;
+                  ctx.stroke();
+              }
+              ctx.restore();
+          }
           ctx.restore();
       }
 

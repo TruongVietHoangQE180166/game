@@ -43,8 +43,8 @@ export const updatePlayerMovement = (
   activeBosses.forEach(boss => {
       if (boss.type === 'BOSS_2' && boss.attackPattern === 'BLACK_HOLE' && boss.attackState === 'PULLING') {
           const dist = getDistance(player.x, player.y, boss.x, boss.y);
-          // Reduced range from 1200 to 600 to fit arena better
-          const PULL_RADIUS = 600;
+          // Reduced range from 600 to 550
+          const PULL_RADIUS = 550;
           
           if (dist < PULL_RADIUS) { 
               // Strong pull near center (1000), weaker at edge (200)

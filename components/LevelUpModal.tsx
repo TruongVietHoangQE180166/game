@@ -9,9 +9,11 @@ import {
 interface LevelUpModalProps {
   options: Buff[];
   onSelect: (buff: Buff) => void;
+  title?: string;
+  tagline?: string;
 }
 
-const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect }) => {
+const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect, title = "LÊN CẤP!", tagline = "// HỆ THỐNG NÂNG CẤP //" }) => {
   
   // Helper to determine styling based on Rarity
   const getRarityStyles = (rarity: Rarity) => {
@@ -121,7 +123,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect }) => {
          {/* Tagline */}
          <div className="bg-black px-6 py-2 border-2 border-white/30 transform -skew-x-12 shadow-[4px_4px_0_0_rgba(255,255,255,0.1)]">
             <span className="block transform skew-x-12 font-mono font-bold text-sm tracking-[0.3em] uppercase text-cyan-400">
-               // HỆ THỐNG NÂNG CẤP //
+               {tagline}
             </span>
          </div>
 
@@ -132,7 +134,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ options, onSelect }) => {
                     textShadow: '6px 6px 0px #000', 
                     WebkitTextStroke: '2px black'
                   }}>
-               LÊN CẤP!
+               {title}
             </span>
             {/* Decoration Underline */}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[110%] h-4 bg-red-600 transform -skew-x-12 -z-10 border-2 border-black"></div>

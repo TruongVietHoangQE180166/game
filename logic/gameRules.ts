@@ -113,6 +113,34 @@ export const generateLevelUpOptions = (): Buff[] => {
     return distinctOptions;
 };
 
+// Generates exactly 3 unique options of a SPECIFIC rarity (for Boss Rewards)
+export const generateFixedRarityOptions = (targetRarity: Rarity): Buff[] => {
+    const pool = BUFFS.filter(b => b.rarity === targetRarity);
+    const distinctOptions: Buff[] = [];
+    const usedIds = new Set<string>();
+
+    // Copy pool to shuffle
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+
+    // Pick up to 3
+    for(const buff of shuffled) {
+        if (distinctOptions.length >= 3) break;
+        distinctOptions.push(buff);
+        usedIds.add(buff.id);
+    }
+
+    // Fallback if not enough items of that rarity (shouldn't happen with updated constants)
+    if (distinctOptions.length < 3) {
+        const backupPool = BUFFS.filter(b => b.rarity !== targetRarity && !usedIds.has(b.id));
+        while(distinctOptions.length < 3 && backupPool.length > 0) {
+             const randomBuff = backupPool.splice(Math.floor(Math.random() * backupPool.length), 1)[0];
+             distinctOptions.push(randomBuff);
+        }
+    }
+
+    return distinctOptions;
+};
+
 // Applies the selected buff (if correct) or a small heal (if wrong)
 export const applyQuizResult = (stats: PlayerStats, buff: Buff | null, isCorrect: boolean): PlayerStats => {
      if (isCorrect && buff) {

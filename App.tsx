@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   GameState, PlayerStats, Enemy, Projectile, Particle, ExpGem, HealthDrop, ArmorDrop,
-  Buff, Question, FloatingText, GameHistory 
+  Buff, Question, FloatingText, GameHistory, Rarity 
 } from './types';
 import { QUESTIONS, CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
 import { getRandomRange, ScreenShake } from './utils';
@@ -24,7 +24,7 @@ import LeaderboardModal from './components/LeaderboardModal'; // New
 // Hooks & Logic
 import { useInput } from './hooks/useInput';
 import { loadGameHistory, saveGameHistory } from './logic/storage';
-import { calculatePlayerDamage, generateLevelUpOptions, applyQuizResult } from './logic/gameRules';
+import { calculatePlayerDamage, generateLevelUpOptions, applyQuizResult, generateFixedRarityOptions } from './logic/gameRules';
 import { INITIAL_STATS } from './logic/stats';
 import { createHitEffect, updateParticles, updateFloatingTexts } from './logic/particles';
 import { updatePlayerMovement, updateZoneLogic, ZoneState } from './logic/player';
@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [levelUpOptions, setLevelUpOptions] = useState<Buff[]>([]);
   const [selectedBuff, setSelectedBuff] = useState<Buff | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [bossRewardTitle, setBossRewardTitle] = useState<{title: string, tagline: string} | null>(null);
 
   // --- REFS ---
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -252,6 +253,13 @@ const App: React.FC = () => {
     setGameState(GameState.QUIZ);
   };
 
+  // Special Boss Reward Selection (No Quiz)
+  const handleBossRewardSelect = (buff: Buff) => {
+      setStats(prev => buff.effect(prev));
+      setGameState(GameState.PLAYING);
+      lastTimeRef.current = performance.now();
+  };
+
   const handleQuizResult = (correct: boolean) => {
      setStats(prev => applyQuizResult(prev, selectedBuff, correct));
      setGameState(GameState.PLAYING);
@@ -328,10 +336,25 @@ const App: React.FC = () => {
         if (e.aiType !== 'KAMIKAZE') {
             setStats(prev => ({ ...prev, kills: prev.kills + 1 }));
 
-            // --- BOSS DEATH TRACKING ---
-            if (e.type === 'BOSS_1') bossTrackerRef.current.boss1DeathTime = gameTimeRef.current;
-            if (e.type === 'BOSS_2') bossTrackerRef.current.boss2DeathTime = gameTimeRef.current;
-            if (e.type === 'BOSS_3') bossTrackerRef.current.boss3DeathTime = gameTimeRef.current;
+            // --- BOSS DEATH TRACKING & REWARD LOGIC ---
+            if (e.type === 'BOSS_1') {
+                bossTrackerRef.current.boss1DeathTime = gameTimeRef.current;
+                setGameState(GameState.BOSS_REWARD);
+                setLevelUpOptions(generateFixedRarityOptions(Rarity.LEGENDARY));
+                setBossRewardTitle({ title: "BOSS 1 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG HUYỀN THOẠI //" });
+            }
+            if (e.type === 'BOSS_2') {
+                bossTrackerRef.current.boss2DeathTime = gameTimeRef.current;
+                setGameState(GameState.BOSS_REWARD);
+                setLevelUpOptions(generateFixedRarityOptions(Rarity.MYTHIC));
+                setBossRewardTitle({ title: "BOSS 2 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THẦN THOẠI //" });
+            }
+            if (e.type === 'BOSS_3') {
+                bossTrackerRef.current.boss3DeathTime = gameTimeRef.current;
+                setGameState(GameState.BOSS_REWARD);
+                setLevelUpOptions(generateFixedRarityOptions(Rarity.GODLY));
+                setBossRewardTitle({ title: "BOSS 3 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THƯỢNG CỔ //" });
+            }
             // ---------------------------
             
             if (e.type === 'SPLITTER') {
@@ -517,10 +540,27 @@ const App: React.FC = () => {
       {showLeaderboard && <LeaderboardModal onClose={() => setShowLeaderboard(false)} />}
       {showNameInput && <NameInputModal onConfirm={handleNameConfirm} onCancel={() => setShowNameInput(false)} />}
 
-      {gameState === GameState.LEVEL_UP && <LevelUpModal options={levelUpOptions} onSelect={handleBuffSelect} />}
+      {/* Normal Level Up */}
+      {gameState === GameState.LEVEL_UP && (
+        <LevelUpModal 
+            options={levelUpOptions} 
+            onSelect={handleBuffSelect} 
+        />
+      )}
+
+      {/* Boss Reward Modal (Uses same component but different titles/logic) */}
+      {gameState === GameState.BOSS_REWARD && (
+        <LevelUpModal 
+            options={levelUpOptions} 
+            onSelect={handleBossRewardSelect} 
+            title={bossRewardTitle?.title}
+            tagline={bossRewardTitle?.tagline}
+        />
+      )}
+
       {gameState === GameState.QUIZ && currentQuestion && selectedBuff && <QuizModal question={currentQuestion} selectedBuff={selectedBuff} onAnswer={handleQuizResult} />}
       
-      {(gameState === GameState.PLAYING || gameState === GameState.LEVEL_UP || gameState === GameState.QUIZ) && <HUD stats={stats} timer={timer} activeBosses={activeBosses} />}
+      {(gameState === GameState.PLAYING || gameState === GameState.LEVEL_UP || gameState === GameState.QUIZ || gameState === GameState.BOSS_REWARD) && <HUD stats={stats} timer={timer} activeBosses={activeBosses} />}
 
       <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="w-full h-full object-contain cursor-crosshair" />
     </div>
