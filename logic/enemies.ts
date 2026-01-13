@@ -22,7 +22,7 @@ interface BossTracker {
 const createBoss = (
     type: Enemy['type'], 
     player: {x: number, y: number}, 
-    scale: number, 
+    isPhase3: boolean = false, // Changed: Removed 'scale' dependency here, simplified args
     angleOffset: number = 0
 ): Enemy => {
       const angle = Math.random() * Math.PI * 2 + angleOffset;
@@ -30,48 +30,50 @@ const createBoss = (
       const x = player.x + Math.cos(angle) * dist;
       const y = player.y + Math.sin(angle) * dist;
 
-      // BOSS CONFIGURATION
-      // UPDATED: Damage is now fixed per Tier, NOT scaled by time to prevent one-shots
-      let hp = 55000; 
+      // BOSS CONFIGURATION (Fixed Stats - Fair for everyone)
+      let hp = 100000; 
       let size = 300; 
       let color = '#000'; 
       let borderColor = '#ef4444';
       
-      let dmg = 50; // Default base
-      
+      let dmg = 50; 
       let speed = 160; 
       let attackPattern: Enemy['attackPattern'] = 'SLAM';
-      let attackRange = 0; // Default fallback for movement logic
+      let attackRange = 0; 
 
       if (type === 'BOSS_1') { 
         attackPattern = 'MISSILE'; 
         color = '#1f2937';
-        hp = 100000; // Increased from 55000
+        hp = 100000; 
         speed = 280;
-        dmg = 80; // Fixed Damage Tier 1
+        dmg = 80; 
         attackRange = 400;
       } else if (type === 'BOSS_2') {
         attackPattern = 'BLACK_HOLE';
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
-        hp = 200000; // Increased from 125000
-        speed = 280; // Slightly reduced base speed as it moves while attacking now
-        dmg = 110; // Fixed Damage Tier 2
-        attackRange = 100; // Aggressive chase
+        hp = 250000; 
+        speed = 280; 
+        dmg = 110; 
+        attackRange = 100; 
       } else {
         // BOSS 3
         attackPattern = 'SPIRAL';
         color = '#450a0a'; 
         borderColor = '#facc15'; 
-        hp = 350000; // Increased from 220000
+        hp = 350000; 
         speed = 260;
-        dmg = 140; // Fixed Damage Tier 3
+        dmg = 140; 
         attackRange = 500;
       }
 
-      // Slightly increase damage only for the Triple Boss phase (Endless challenge)
-      if (scale > 5.0) {
-          dmg *= 1.2;
+      // === PHASE 3: TRIPLE BOSS POWER UP ===
+      // Logic Simplified: Only apply buffs if it's explicitly the Triple Boss Event.
+      // No more scale checking. Single bosses are always standard strength.
+      if (isPhase3) {
+          hp *= 3.0;      // 3x HP
+          dmg *= 1.5;     // 1.5x Damage
+          speed *= 1.15;  // 15% Faster
       }
 
       return {
@@ -98,7 +100,7 @@ export const handleEnemySpawning = (
   const newBosses: Enemy[] = [];
   const BOSS_DELAY = 60; 
 
-  // Calculate difficulty multiplier based on time
+  // Calculate difficulty multiplier based on time (Only used for Normal Mobs now)
   const scale = 1 + (gameTime / 60) * 0.7; 
 
   // === TRIPLE BOSS SPAWN LOGIC ===
@@ -109,9 +111,10 @@ export const handleEnemySpawning = (
   ) {
       bossTracker.tripleBossSpawned = true;
       
-      newBosses.push(createBoss('BOSS_1', player, scale * 1.5, 0));
-      newBosses.push(createBoss('BOSS_2', player, scale * 1.5, (Math.PI * 2) / 3));
-      newBosses.push(createBoss('BOSS_3', player, scale * 1.5, (Math.PI * 4) / 3));
+      // Spawn all 3 with isPhase3 = TRUE
+      newBosses.push(createBoss('BOSS_1', player, true, 0));
+      newBosses.push(createBoss('BOSS_2', player, true, (Math.PI * 2) / 3));
+      newBosses.push(createBoss('BOSS_3', player, true, (Math.PI * 4) / 3));
       
       enemies.push(...newBosses);
       setActiveBosses(newBosses);
@@ -119,9 +122,10 @@ export const handleEnemySpawning = (
   }
 
   // === SEQUENTIAL BOSS SPAWN LOGIC ===
+  // Pass isPhase3 = FALSE for all these single spawns
   if (gameTime >= 120 && !bossTracker.boss1Spawned) {
       bossTracker.boss1Spawned = true; 
-      const b = createBoss('BOSS_1', player, scale);
+      const b = createBoss('BOSS_1', player, false);
       enemies.push(b); newBosses.push(b);
   } 
   else if (
@@ -130,7 +134,7 @@ export const handleEnemySpawning = (
       !bossTracker.boss2Spawned
   ) {
       bossTracker.boss2Spawned = true; 
-      const b = createBoss('BOSS_2', player, scale);
+      const b = createBoss('BOSS_2', player, false);
       enemies.push(b); newBosses.push(b);
   }
   else if (
@@ -139,7 +143,7 @@ export const handleEnemySpawning = (
       !bossTracker.boss3Spawned
   ) {
       bossTracker.boss3Spawned = true; 
-      const b = createBoss('BOSS_3', player, scale);
+      const b = createBoss('BOSS_3', player, false);
       enemies.push(b); newBosses.push(b);
   }
   
@@ -171,7 +175,7 @@ export const handleEnemySpawning = (
       let type: Enemy['type'] = 'NORM_1';
       let aiType: Enemy['aiType'] = 'MELEE';
       
-      // HP Buffed ~3.5x - 4.0x for Normal Mobs -> Increased base to 400
+      // HP Buffed for Normal Mobs using Scale
       let hp = 400 * scale; 
       let speed = 140; 
       let dmg = 25 * scale;
