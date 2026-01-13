@@ -36,7 +36,8 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: var(--background);
+      background-color: #111827;
+      /* Changed to dark bg to match game theme */
       overflow: hidden;
       font-family: var(--font-sans);
       user-select: none;
@@ -46,7 +47,8 @@
     canvas {
       display: block;
       image-rendering: pixelated;
-      background-color: oklch(0.98 0.01 0);
+      background-color: transparent;
+      /* IMPORTANT: Transparent so GameMap shows through */
     }
 
     .neo-shadow {
@@ -77,6 +79,41 @@
 
     .animate-pop {
       animation: pop 0.2s ease-out;
+    }
+
+    /* Animation for the shiny bar in HUD */
+    @keyframes shine {
+      0% {
+        left: -100%;
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+
+      100% {
+        left: 100%;
+        opacity: 0;
+      }
+    }
+
+    .animate-shine {
+      animation: shine 2s infinite;
+    }
+
+    .animate-spin-slow {
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>

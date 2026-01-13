@@ -343,7 +343,7 @@ export const updateEnemies = (
     // === BOSS 2: BLACK HOLE, LASER, & RAPID STREAM ===
     else if (e.type === 'BOSS_2') {
          if (e.attackState === 'IDLE') {
-             // Aggressive: Always try to attack regardless of range if cooldown is ready
+             // UPDATE: Much more aggressive LASER preference
              if (e.stateTimer > 0.2) {
                  const r = Math.random();
                  if (r < 0.33) e.attackPattern = 'BLACK_HOLE';
@@ -369,16 +369,24 @@ export const updateEnemies = (
                 if (e.stateTimer > 0.15) { e.attackState = 'FIRING'; e.stateTimer = 0; shakeManager.shake(10); }
             }
             else if (e.attackState === 'FIRING') {
-                // DO NOT Track during firing (player can dodge), but boss moves, so beam translates
+                // TRIPLE LASER LOGIC: Fire 3 beams (Center, Left, Right)
                 const beamLen = 1500;
-                const x2 = e.x + Math.cos(e.laserAngle || 0) * beamLen;
-                const y2 = e.y + Math.sin(e.laserAngle || 0) * beamLen;
-                const A = player.x - e.x; const B = player.y - e.y; const C = x2 - e.x; const D = y2 - e.y;
-                const dot = A * C + B * D; const len_sq = C * C + D * D;
-                let param = -1; if (len_sq !== 0) param = dot / len_sq;
-                let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
-                const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
-                if (distToLine < 80) { takeDamage(12); } 
+                // Offset angles in radians (~20 degrees)
+                const beamOffsets = [0, -0.35, 0.35]; 
+                
+                for (const offset of beamOffsets) {
+                    const actualAngle = (e.laserAngle || 0) + offset;
+                    
+                    const x2 = e.x + Math.cos(actualAngle) * beamLen;
+                    const y2 = e.y + Math.sin(actualAngle) * beamLen;
+                    const A = player.x - e.x; const B = player.y - e.y; const C = x2 - e.x; const D = y2 - e.y;
+                    const dot = A * C + B * D; const len_sq = C * C + D * D;
+                    let param = -1; if (len_sq !== 0) param = dot / len_sq;
+                    let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
+                    const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
+                    
+                    if (distToLine < 70) { takeDamage(12); } 
+                }
 
                 if (e.stateTimer > 1.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
             }
@@ -426,7 +434,9 @@ export const updateEnemies = (
              }
          }
          else if (e.attackState === 'COOLDOWN') {
-             if (e.stateTimer > 0.3) { e.attackState = 'IDLE'; e.stateTimer = 0; }
+             // UPDATE: Faster cooldown for LASER to make it "continuous"
+             const cdTime = e.attackPattern === 'LASER' ? 0.2 : 0.3;
+             if (e.stateTimer > cdTime) { e.attackState = 'IDLE'; e.stateTimer = 0; }
          }
     }
 
