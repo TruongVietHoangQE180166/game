@@ -46,7 +46,7 @@ const createBoss = (
       if (type === 'BOSS_1') { 
         attackPattern = 'MISSILE'; 
         color = '#1f2937';
-        hp = 80000; // Increased from 55000
+        hp = 100000; // Increased from 55000
         speed = 280;
         dmg = 80; // Fixed Damage Tier 1
         attackRange = 400;
@@ -54,7 +54,7 @@ const createBoss = (
         attackPattern = 'BLACK_HOLE';
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
-        hp = 170000; // Increased from 125000
+        hp = 200000; // Increased from 125000
         speed = 280; // Slightly reduced base speed as it moves while attacking now
         dmg = 110; // Fixed Damage Tier 2
         attackRange = 100; // Aggressive chase
@@ -63,7 +63,7 @@ const createBoss = (
         attackPattern = 'SPIRAL';
         color = '#450a0a'; 
         borderColor = '#facc15'; 
-        hp = 270000; // Increased from 220000
+        hp = 350000; // Increased from 220000
         speed = 260;
         dmg = 140; // Fixed Damage Tier 3
         attackRange = 500;
@@ -441,9 +441,9 @@ export const updateEnemies = (
              e.burstCount = 3; 
         }
 
-        // FIX: Ensure shouldMove=false only triggers if actually in attack state
+        // BOSS 3 now MOVES SLOWLY towards player during these attacks instead of stopping
         if (e.attackPattern === 'ROTATING_LASERS' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
-            shouldMove = false;
+            moveSpeed *= 0.2; // Creep towards player
             if (e.attackState === 'WARN') {
                 if (e.stateTimer > 1.5) { 
                     e.attackState = 'FIRING'; 
@@ -499,7 +499,7 @@ export const updateEnemies = (
             }
         }
         else if (e.attackPattern === 'SPIRAL' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
-            shouldMove = false;
+            moveSpeed *= 0.2; // Creep towards player
             if (e.attackState === 'WARN') {
                  if (e.stateTimer > 0.8) { e.attackState = 'FIRING'; e.stateTimer = 0; }
             }
@@ -524,7 +524,7 @@ export const updateEnemies = (
             }
         }
         else if (e.attackPattern === 'GRID' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
-            shouldMove = false;
+            moveSpeed *= 0.2; // Creep towards player
             if (e.attackState === 'WARN') {
                  if (e.stateTimer > 0.8) { e.attackState = 'FIRING'; e.stateTimer = 0; }
             }
@@ -654,12 +654,10 @@ export const updateEnemies = (
     if (shouldMove) {
         if (e.type === 'BOSS_2') {
              // BOSS 2 SPECIAL AI: AGGRESSIVE CHASER (RUN & GUN)
-             // Always move towards player unless extremely close (150px)
-             if (dist > 150) {
-                 const angle = Math.atan2(player.y - e.y, player.x - e.x);
-                 e.x += Math.cos(angle) * moveSpeed * dt; 
-                 e.y += Math.sin(angle) * moveSpeed * dt;
-             }
+             // REMOVED "dist > 150" check. It now always chases unless dead.
+             const angle = Math.atan2(player.y - e.y, player.x - e.x);
+             e.x += Math.cos(angle) * moveSpeed * dt; 
+             e.y += Math.sin(angle) * moveSpeed * dt;
         }
         else if (e.aiType === 'RANGED') {
              if (dist > (e.attackRange || 300)) {
