@@ -55,9 +55,9 @@ const createBoss = (
         color = '#1e1b4b'; 
         borderColor = '#818cf8';
         hp = 125000; // Increased from 105000
-        speed = 300; 
+        speed = 280; // Slightly reduced base speed as it moves while attacking now
         dmg = 110; // Fixed Damage Tier 2
-        attackRange = 600; // Keep distance for ranged attacks
+        attackRange = 100; // Aggressive chase
       } else {
         // BOSS 3
         attackPattern = 'SPIRAL';
@@ -339,13 +339,8 @@ export const updateEnemies = (
     // === BOSS 2: BLACK HOLE, LASER, & RAPID STREAM ===
     else if (e.type === 'BOSS_2') {
          if (e.attackState === 'IDLE') {
-             // FIX: Boss 2 stays in IDLE to move if player is far away
-             // Only attack if < 650 range OR if chased for too long (> 3s)
-             const inRange = dist < 650;
-             const chaseTimeout = e.stateTimer > 3.0;
-
-             if (e.stateTimer > 0.2 && (inRange || chaseTimeout)) {
-                 // UPDATED PROBABILITIES for 3 skills
+             // Aggressive: Always try to attack regardless of range if cooldown is ready
+             if (e.stateTimer > 0.2) {
                  const r = Math.random();
                  if (r < 0.33) e.attackPattern = 'BLACK_HOLE';
                  else if (r < 0.66) e.attackPattern = 'LASER';
@@ -355,36 +350,41 @@ export const updateEnemies = (
                  e.secondaryTimer = 0;
              }
          }
-         else if (e.attackPattern === 'LASER' && e.attackState === 'WARN') {
-            const angle = Math.atan2(player.y - e.y, player.x - e.x);
-            e.laserAngle = angle;
-            shouldMove = false;
-            if (e.stateTimer > 0.25) { e.attackState = 'CHARGING'; e.stateTimer = 0; }
-         }
-         else if (e.attackPattern === 'LASER' && e.attackState === 'CHARGING') {
-             shouldMove = false;
-             if (e.stateTimer > 0.15) { e.attackState = 'FIRING'; e.stateTimer = 0; shakeManager.shake(10); }
-         }
-         else if (e.attackPattern === 'LASER' && e.attackState === 'FIRING') {
-             const beamLen = 1500;
-             const x2 = e.x + Math.cos(e.laserAngle || 0) * beamLen;
-             const y2 = e.y + Math.sin(e.laserAngle || 0) * beamLen;
-             const A = player.x - e.x; const B = player.y - e.y; const C = x2 - e.x; const D = y2 - e.y;
-             const dot = A * C + B * D; const len_sq = C * C + D * D;
-             let param = -1; if (len_sq !== 0) param = dot / len_sq;
-             let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
-             const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
-             if (distToLine < 80) { takeDamage(12); } // Increased hitbox for laser
+         else if (e.attackPattern === 'LASER' && (e.attackState === 'WARN' || e.attackState === 'CHARGING' || e.attackState === 'FIRING')) {
+            // MOVEMENT ALLOWED - RUN & GUN
+            moveSpeed *= 0.4; // Slow down while focusing
 
-             shouldMove = false;
-             if (e.stateTimer > 1.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
+            if (e.attackState === 'WARN') {
+                // Track player during warning
+                e.laserAngle = Math.atan2(player.y - e.y, player.x - e.x);
+                if (e.stateTimer > 0.25) { e.attackState = 'CHARGING'; e.stateTimer = 0; }
+            }
+            else if (e.attackState === 'CHARGING') {
+                // Track player during charging too
+                e.laserAngle = Math.atan2(player.y - e.y, player.x - e.x);
+                if (e.stateTimer > 0.15) { e.attackState = 'FIRING'; e.stateTimer = 0; shakeManager.shake(10); }
+            }
+            else if (e.attackState === 'FIRING') {
+                // DO NOT Track during firing (player can dodge), but boss moves, so beam translates
+                const beamLen = 1500;
+                const x2 = e.x + Math.cos(e.laserAngle || 0) * beamLen;
+                const y2 = e.y + Math.sin(e.laserAngle || 0) * beamLen;
+                const A = player.x - e.x; const B = player.y - e.y; const C = x2 - e.x; const D = y2 - e.y;
+                const dot = A * C + B * D; const len_sq = C * C + D * D;
+                let param = -1; if (len_sq !== 0) param = dot / len_sq;
+                let xx, yy; if (param < 0) { xx = e.x; yy = e.y; } else if (param > 1) { xx = x2; yy = y2; } else { xx = e.x + param * C; yy = e.y + param * D; }
+                const distToLine = Math.sqrt(Math.pow(player.x - xx, 2) + Math.pow(player.y - yy, 2));
+                if (distToLine < 80) { takeDamage(12); } 
+
+                if (e.stateTimer > 1.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
+            }
          }
          else if (e.attackPattern === 'BLACK_HOLE' && e.attackState === 'WARN') {
-             shouldMove = false;
+             // MOVEMENT ALLOWED DURING WARN
              if (e.stateTimer > 0.4) { e.attackState = 'PULLING'; e.stateTimer = 0; }
          }
          else if (e.attackPattern === 'BLACK_HOLE' && e.attackState === 'PULLING') {
-             shouldMove = false;
+             shouldMove = false; // MUST STOP TO ANCHOR BLACK HOLE
              if (Math.random() > 0.5) {
                  particles.push({
                      id: Math.random().toString(), x: player.x + getRandomRange(-50, 50), y: player.y + getRandomRange(-50, 50),
@@ -394,22 +394,23 @@ export const updateEnemies = (
              }
              if (e.stateTimer > 3.5) { e.attackState = 'COOLDOWN'; e.stateTimer = 0; }
          }
-         // FIX: Ensure shouldMove=false only triggers if actually in attack state
          else if (e.attackPattern === 'RAPID_STREAM' && (e.attackState === 'WARN' || e.attackState === 'FIRING')) {
-             shouldMove = false;
+             // MOVEMENT ALLOWED - RUN & GUN
+             moveSpeed *= 0.7; // Fast movement while shooting
+
              if (e.attackState === 'WARN') {
-                 // Lock aim once
-                 if (e.stateTimer === 0 || !e.laserAngle) {
-                     e.laserAngle = Math.atan2(player.y - e.y, player.x - e.x);
-                 }
+                 e.laserAngle = Math.atan2(player.y - e.y, player.x - e.x);
                  if (e.stateTimer > 0.6) { e.attackState = 'FIRING'; e.stateTimer = 0; e.secondaryTimer = 0; }
              }
              else if (e.attackState === 'FIRING') {
                  e.secondaryTimer = (e.secondaryTimer || 0) + dt;
-                 // Fire rapidly
                  if (e.secondaryTimer > 0.08) {
                      const spread = getRandomRange(-0.15, 0.15);
-                     const fireAngle = (e.laserAngle || 0) + spread;
+                     // Recalculate aim every shot to make it deadly if they just run
+                     const aimAngle = Math.atan2(player.y - e.y, player.x - e.x);
+                     const fireAngle = aimAngle + spread;
+                     e.laserAngle = aimAngle; // Update visual indicator angle
+
                      projectiles.push({
                         id: Math.random().toString(), x: e.x, y: e.y, width: 20, height: 20,
                         vx: Math.cos(fireAngle) * 550, vy: Math.sin(fireAngle) * 550,
@@ -651,7 +652,16 @@ export const updateEnemies = (
 
     // --- MOVEMENT ---
     if (shouldMove) {
-        if (e.aiType === 'RANGED' || (e.aiType === 'BOSS' && e.type === 'BOSS_2')) {
+        if (e.type === 'BOSS_2') {
+             // BOSS 2 SPECIAL AI: AGGRESSIVE CHASER (RUN & GUN)
+             // Always move towards player unless extremely close (150px)
+             if (dist > 150) {
+                 const angle = Math.atan2(player.y - e.y, player.x - e.x);
+                 e.x += Math.cos(angle) * moveSpeed * dt; 
+                 e.y += Math.sin(angle) * moveSpeed * dt;
+             }
+        }
+        else if (e.aiType === 'RANGED') {
              if (dist > (e.attackRange || 300)) {
                  const angle = Math.atan2(player.y - e.y, player.x - e.x);
                  e.x += Math.cos(angle) * moveSpeed * dt; e.y += Math.sin(angle) * moveSpeed * dt;

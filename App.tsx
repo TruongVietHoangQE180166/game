@@ -59,6 +59,10 @@ const App: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [bossRewardTitle, setBossRewardTitle] = useState<{title: string, tagline: string} | null>(null);
 
+  // Rewards State
+  const [rewardsRemaining, setRewardsRemaining] = useState(0);
+  const [currentRewardRarity, setCurrentRewardRarity] = useState<Rarity>(Rarity.COMMON);
+
   // --- REFS ---
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | undefined>(undefined);
@@ -174,7 +178,8 @@ const App: React.FC = () => {
     weaponTimersRef.current = { gun: 0, book: 0, lightning: 0, nova: 0 };
     zoneRef.current = { active: false, radius: 0, center: {x:0, y:0}, lastBossId: null };
     
-    // Reset Question Pool
+    // Reset State
+    setRewardsRemaining(0);
     availableQuestionIndicesRef.current = []; // Empty it so it refills on first use
 
     // Reset Boss Tracker
@@ -256,8 +261,18 @@ const App: React.FC = () => {
   // Special Boss Reward Selection (No Quiz)
   const handleBossRewardSelect = (buff: Buff) => {
       setStats(prev => buff.effect(prev));
-      setGameState(GameState.PLAYING);
-      lastTimeRef.current = performance.now();
+      
+      const nextRemaining = rewardsRemaining - 1;
+      setRewardsRemaining(nextRemaining);
+
+      if (nextRemaining > 0) {
+          // Generate NEXT options for the 2nd pick
+          setLevelUpOptions(generateFixedRarityOptions(currentRewardRarity));
+          setBossRewardTitle(prev => prev ? { ...prev, tagline: prev.tagline.replace('(1/2)', '(2/2)') } : null);
+      } else {
+          setGameState(GameState.PLAYING);
+          lastTimeRef.current = performance.now();
+      }
   };
 
   const handleQuizResult = (correct: boolean) => {
@@ -337,23 +352,32 @@ const App: React.FC = () => {
             setStats(prev => ({ ...prev, kills: prev.kills + 1 }));
 
             // --- BOSS DEATH TRACKING & REWARD LOGIC ---
-            if (e.type === 'BOSS_1') {
-                bossTrackerRef.current.boss1DeathTime = gameTimeRef.current;
-                setGameState(GameState.BOSS_REWARD);
-                setLevelUpOptions(generateFixedRarityOptions(Rarity.LEGENDARY));
-                setBossRewardTitle({ title: "BOSS 1 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG HUYỀN THOẠI //" });
-            }
-            if (e.type === 'BOSS_2') {
-                bossTrackerRef.current.boss2DeathTime = gameTimeRef.current;
-                setGameState(GameState.BOSS_REWARD);
-                setLevelUpOptions(generateFixedRarityOptions(Rarity.MYTHIC));
-                setBossRewardTitle({ title: "BOSS 2 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THẦN THOẠI //" });
-            }
-            if (e.type === 'BOSS_3') {
-                bossTrackerRef.current.boss3DeathTime = gameTimeRef.current;
-                setGameState(GameState.BOSS_REWARD);
-                setLevelUpOptions(generateFixedRarityOptions(Rarity.GODLY));
-                setBossRewardTitle({ title: "BOSS 3 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THƯỢNG CỔ //" });
+            // Only grant rewards if NOT in the triple boss phase
+            if (!bossTrackerRef.current.tripleBossSpawned) {
+                if (e.type === 'BOSS_1') {
+                    bossTrackerRef.current.boss1DeathTime = gameTimeRef.current;
+                    setGameState(GameState.BOSS_REWARD);
+                    setRewardsRemaining(2); // Set reward count to 2
+                    setCurrentRewardRarity(Rarity.LEGENDARY);
+                    setLevelUpOptions(generateFixedRarityOptions(Rarity.LEGENDARY));
+                    setBossRewardTitle({ title: "BOSS 1 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG HUYỀN THOẠI (1/2) //" });
+                }
+                else if (e.type === 'BOSS_2') {
+                    bossTrackerRef.current.boss2DeathTime = gameTimeRef.current;
+                    setGameState(GameState.BOSS_REWARD);
+                    setRewardsRemaining(2); // Set reward count to 2
+                    setCurrentRewardRarity(Rarity.MYTHIC);
+                    setLevelUpOptions(generateFixedRarityOptions(Rarity.MYTHIC));
+                    setBossRewardTitle({ title: "BOSS 2 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THẦN THOẠI (1/2) //" });
+                }
+                else if (e.type === 'BOSS_3') {
+                    bossTrackerRef.current.boss3DeathTime = gameTimeRef.current;
+                    setGameState(GameState.BOSS_REWARD);
+                    setRewardsRemaining(2); // Set reward count to 2
+                    setCurrentRewardRarity(Rarity.GODLY);
+                    setLevelUpOptions(generateFixedRarityOptions(Rarity.GODLY));
+                    setBossRewardTitle({ title: "BOSS 3 ĐÃ DIỆT!", tagline: "// PHẦN THƯỞNG THƯỢNG CỔ (1/2) //" });
+                }
             }
             // ---------------------------
             
@@ -458,7 +482,7 @@ const App: React.FC = () => {
     floatingTextsRef.current = updateFloatingTexts(floatingTextsRef.current, dt);
 
     if (s.hp <= 0) handleGameOver();
-  }, [gameState, activeBosses, takeDamage, handleLevelUp]);
+  }, [gameState, activeBosses, takeDamage, handleLevelUp, rewardsRemaining, currentRewardRarity]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
