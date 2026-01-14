@@ -10,7 +10,8 @@ export const INITIAL_STATS: PlayerStats = {
   currentArmor: 50,
   armor: 1, 
   armorRegen: 1,
-
+  
+  secondChance: 1,
   moveSpeed: 300,
 
   // --- GUN STATS ---

@@ -6,6 +6,7 @@ export enum GameState {
   LEVEL_UP = 'LEVEL_UP',
   BOSS_REWARD = 'BOSS_REWARD', // New: Nhận thưởng khi giết Boss
   QUIZ = 'QUIZ',
+  REVIVING = 'REVIVING', // New: Đếm ngược hồi sinh
   GAMEOVER = 'GAMEOVER',
   WIN = 'WIN'
 }
@@ -58,6 +59,7 @@ export interface PlayerStats {
   armorRegen: number; // New: Hồi giáp mỗi giây
   
   moveSpeed: number;
+  secondChance: number; // New: Số mạng hồi sinh (mặc định 1)
 
   // Gun Specific Stats
   gunDamageMult: number;

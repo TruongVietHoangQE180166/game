@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   GameState, PlayerStats, Enemy, Projectile, Particle, ExpGem, HealthDrop, ArmorDrop,
@@ -20,7 +19,10 @@ import TutorialModal from './components/TutorialModal';
 import PolicyModal from './components/PolicyModal';
 import NameInputModal from './components/NameInputModal';
 import LeaderboardModal from './components/LeaderboardModal';
-import GameMap from './components/GameMap'; // NEW
+import GameMap from './components/GameMap';
+
+// Icons
+import { HeartPulse, Hourglass, Zap, ShieldAlert, Binary, AlertTriangle } from 'lucide-react';
 
 // Hooks & Logic
 import { useInput } from './hooks/useInput';
@@ -59,6 +61,7 @@ const App: React.FC = () => {
   const [selectedBuff, setSelectedBuff] = useState<Buff | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [bossRewardTitle, setBossRewardTitle] = useState<{title: string, tagline: string} | null>(null);
+  const [reviveTimer, setReviveTimer] = useState(5);
 
   // Rewards State
   const [rewardsRemaining, setRewardsRemaining] = useState(0);
@@ -210,6 +213,42 @@ const App: React.FC = () => {
      lastTimeRef.current = performance.now();
   };
 
+  // --- REVIVE LOGIC ---
+  useEffect(() => {
+      let revivalInterval: any = null;
+      if (gameState === GameState.REVIVING) {
+          revivalInterval = setInterval(() => {
+              setReviveTimer(prev => {
+                  if (prev <= 1) {
+                      // Perform Revive
+                      setStats(curr => ({
+                          ...curr,
+                          hp: curr.maxHP * 0.5, // 50% HP
+                          currentArmor: curr.maxArmor * 0.5, // 50% Armor
+                          secondChance: curr.secondChance - 1 // Consume Life
+                      }));
+                      setGameState(GameState.PLAYING);
+                      iFrameRef.current = 3.0; // 3 seconds immunity
+                      lastTimeRef.current = performance.now(); // Reset delta timer
+                      
+                      // Push Back Enemies visually (Shockwave)
+                      shakeManager.current.shake(30);
+                      particlesRef.current.push({
+                          id: Math.random().toString(), x: playerRef.current.x, y: playerRef.current.y,
+                          width:0, height:0, vx:0, vy:0, life:1.0, maxLife:1.0, 
+                          color: '#22c55e', size: 500, type: 'SHOCKWAVE', drag:0, growth: 500
+                      });
+                      
+                      return 5; // Reset for next time (if any)
+                  }
+                  return prev - 1;
+              });
+          }, 1000);
+      }
+      return () => { if (revivalInterval) clearInterval(revivalInterval); };
+  }, [gameState]);
+
+
   const update = useCallback((deltaTime: number) => {
     if (gameState !== GameState.PLAYING) return;
     const dt = deltaTime / 1000;
@@ -218,12 +257,25 @@ const App: React.FC = () => {
     shakeManager.current.update();
     const s = statsRef.current;
 
+    // Regen logic
     if (s.hp < s.maxHP || s.currentArmor < s.maxArmor) {
         setStats(prev => ({
             ...prev,
             hp: Math.min(prev.maxHP, prev.hp + (prev.hpRegen * dt)),
             currentArmor: Math.min(prev.maxArmor, prev.currentArmor + (prev.armorRegen * dt))
         }));
+    }
+
+    // Death Check with Second Chance
+    if (s.hp <= 0) {
+        if (s.secondChance > 0) {
+            setGameState(GameState.REVIVING);
+            setReviveTimer(5);
+            return; // STOP UPDATE LOOP
+        } else {
+            handleGameOver();
+            return; // STOP UPDATE LOOP
+        }
     }
 
     updateZoneLogic(zoneRef.current, playerRef.current, floatingTextsRef.current, dt, activeBosses);
@@ -315,7 +367,6 @@ const App: React.FC = () => {
     if (activeBosses.length > 0) setActiveBosses(enemiesRef.current.filter(e => e.aiType === 'BOSS'));
     particlesRef.current = updateParticles(particlesRef.current, dt);
     floatingTextsRef.current = updateFloatingTexts(floatingTextsRef.current, dt);
-    if (s.hp <= 0) handleGameOver();
   }, [gameState, activeBosses, takeDamage, handleLevelUp, rewardsRemaining, currentRewardRarity]);
 
   const draw = useCallback(() => {
@@ -360,6 +411,73 @@ const App: React.FC = () => {
           />
       )}
 
+      {/* Revive Overlay - REDESIGNED */}
+      {gameState === GameState.REVIVING && (
+         <div className="absolute inset-0 z-[100] bg-black font-mono overflow-hidden flex flex-col items-center justify-center">
+             
+             {/* CRT Scanline Effect */}
+             <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))', backgroundSize: '100% 2px, 3px 100%' }}></div>
+             
+             {/* Background Red Pulse */}
+             <div className="absolute inset-0 bg-red-900/20 animate-pulse z-0"></div>
+
+             {/* Main Content */}
+             <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+                 
+                 {/* Top Warning Bar */}
+                 <div className="w-full bg-red-600 text-black px-4 py-2 flex justify-between items-center mb-12 border-y-4 border-black">
+                     <div className="flex items-center gap-2 font-black uppercase tracking-widest animate-pulse">
+                         <AlertTriangle size={24} /> CRITICAL SYSTEM FAILURE
+                     </div>
+                     <div className="font-mono font-bold text-xs">ERR_CODE: 0xDEAD_BEEF</div>
+                 </div>
+
+                 {/* Central Countdown Module */}
+                 <div className="relative w-64 h-64 flex items-center justify-center mb-8">
+                     {/* Spinning Rings */}
+                     <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
+                     <div className="absolute inset-0 border-t-4 border-l-4 border-red-500 rounded-full animate-spin"></div>
+                     <div className="absolute inset-4 border-2 border-red-900/50 rounded-full"></div>
+                     <div className="absolute inset-4 border-b-2 border-r-2 border-red-400 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }}></div>
+
+                     {/* The Number */}
+                     <div className="text-[120px] font-black text-white tabular-nums leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">
+                         {reviveTimer}
+                     </div>
+                 </div>
+
+                 {/* Text Info */}
+                 <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-2">
+                     REBOOTING SYSTEM
+                 </h2>
+                 <p className="text-red-400 font-mono text-sm uppercase tracking-[0.3em] mb-12 animate-pulse">
+                     Injecting Adrenaline Stimulant...
+                 </p>
+
+                 {/* Progress Bar at Bottom */}
+                 <div className="w-full max-w-md bg-gray-900 border-2 border-gray-700 h-6 relative overflow-hidden">
+                     <div 
+                        className="h-full bg-red-600 transition-all duration-1000 ease-linear relative"
+                        style={{ width: `${((5 - reviveTimer) / 5) * 100}%` }}
+                     >
+                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_25%,rgba(0,0,0,0.2)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.2)_75%,rgba(0,0,0,0.2))] bg-[length:10px_10px]"></div>
+                     </div>
+                     <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white tracking-widest mix-blend-difference">
+                         RECOVERY PROGRESS
+                     </div>
+                 </div>
+
+                 {/* System Logs */}
+                 <div className="mt-8 text-xs text-gray-500 font-mono text-center space-y-1 opacity-70">
+                    <div>[SYSTEM] Heartbeat detected... OK</div>
+                    <div>[SYSTEM] Bio-shell integrity... 50%</div>
+                    <div>[SYSTEM] Weapon systems... STANDBY</div>
+                 </div>
+
+             </div>
+         </div>
+      )}
+
       {gameState === GameState.LOADING && <LoadingScreen progress={loadingProgress} />}
       {gameState === GameState.MENU && <MainMenu onStart={handleStartRequest} onShowHistory={() => setShowHistory(true)} onShowTutorial={() => setShowTutorial(true)} onShowPolicy={() => setShowPolicy(true)} onShowLeaderboard={() => setShowLeaderboard(true)} />}
       {gameState === GameState.GAMEOVER && <GameOverScreen stats={stats} onRetry={startGame} onMenu={backToMenu} />}
@@ -375,7 +493,9 @@ const App: React.FC = () => {
       {gameState === GameState.BOSS_REWARD && <LevelUpModal options={levelUpOptions} onSelect={handleBossRewardSelect} title={bossRewardTitle?.title} tagline={bossRewardTitle?.tagline} />}
       {gameState === GameState.QUIZ && currentQuestion && selectedBuff && <QuizModal question={currentQuestion} selectedBuff={selectedBuff} onAnswer={handleQuizResult} />}
       
-      {(gameState === GameState.PLAYING || gameState === GameState.LEVEL_UP || gameState === GameState.QUIZ || gameState === GameState.BOSS_REWARD) && <HUD stats={stats} timer={timer} activeBosses={activeBosses} />}
+      {(gameState === GameState.PLAYING || gameState === GameState.LEVEL_UP || gameState === GameState.QUIZ || gameState === GameState.BOSS_REWARD || gameState === GameState.REVIVING) && 
+        <HUD stats={stats} timer={timer} activeBosses={activeBosses} />
+      }
 
       {/* Main Game Canvas (Transparent Background) */}
       <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="absolute inset-0 w-full h-full object-contain cursor-crosshair z-10" />

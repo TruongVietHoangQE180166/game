@@ -4,7 +4,7 @@ import { PlayerStats, Enemy } from '../types';
 import { 
   Heart, Shield, Skull, Clock, 
   Crosshair, Book, Maximize2, Minimize2, Swords, Zap, Bomb,
-  Activity, AlertOctagon
+  Activity, AlertOctagon, HeartPulse, Cpu, AlertTriangle
 } from 'lucide-react';
 
 interface HUDProps {
@@ -84,18 +84,34 @@ const HUD: React.FC<HUDProps> = ({ stats, timer, activeBosses }) => {
                       </div>
                   </div>
 
-                  {/* ARMOR - NO TRANSITIONS */}
-                  <div className="bg-black/80 backdrop-blur text-blue-400 p-2 border-l-4 border-blue-500 shadow-lg min-w-[200px] md:min-w-[240px] ml-2">
-                      <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-widest uppercase">
-                          <span className="flex items-center gap-1"><Shield size={10} /> Giáp</span>
-                          <span className="font-mono">{Math.ceil(stats.currentArmor)}/{stats.maxArmor}</span>
+                  {/* SECOND CHANCE & ARMOR ROW */}
+                  <div className="flex gap-2 items-stretch">
+                      
+                      {/* SECOND CHANCE INDICATOR - SIMPLIFIED */}
+                      <div className={`
+                         flex items-center justify-center px-4 bg-black/80 backdrop-blur border-l-4 shadow-lg
+                         ${stats.secondChance > 0 ? 'border-green-500' : 'border-gray-800'}
+                      `}>
+                          {stats.secondChance > 0 ? (
+                              <Heart size={28} className="text-green-500 fill-green-500 animate-pulse drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
+                          ) : (
+                              <Heart size={28} className="text-gray-700" />
+                          )}
                       </div>
-                      <div className="h-2 bg-gray-900 w-full overflow-hidden relative">
-                          <div 
-                            className="h-full bg-blue-500 relative"
-                            style={{ width: `${armorPercent}%` }}
-                          >
-                              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)] opacity-50 w-full animate-shine"></div>
+
+                      {/* ARMOR - NO TRANSITIONS */}
+                      <div className="flex-1 bg-black/80 backdrop-blur text-blue-400 p-2 border-l-4 border-blue-500 shadow-lg min-w-[150px]">
+                          <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-widest uppercase">
+                              <span className="flex items-center gap-1"><Shield size={10} /> Giáp</span>
+                              <span className="font-mono">{Math.ceil(stats.currentArmor)}/{stats.maxArmor}</span>
+                          </div>
+                          <div className="h-2 bg-gray-900 w-full overflow-hidden relative">
+                              <div 
+                                className="h-full bg-blue-500 relative"
+                                style={{ width: `${armorPercent}%` }}
+                              >
+                                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)] opacity-50 w-full animate-shine"></div>
+                              </div>
                           </div>
                       </div>
                   </div>
